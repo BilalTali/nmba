@@ -36,17 +36,22 @@ Route::get('/', function () {
     ], fn($item) => $item['value'] > 0));
 
     // Chart Data: Events over last 7 days Area Chart
-    $sevenDaysAgo = now()->subDays(7)->format('Y-m-d');
-    $eventsOverTime = \App\Models\Event::where('event_date', '>=', $sevenDaysAgo)
+    $eventsOverTimeRaw = \App\Models\Event::where('event_date', '>=', now()->subDays(7)->format('Y-m-d'))
         ->selectRaw('DATE(event_date) as date, COUNT(*) as count')
         ->groupBy('date')
-        ->orderBy('date', 'asc')
-        ->get()->map(function($item) {
-            return [
-                'date' => \Carbon\Carbon::parse($item->date)->format('M d'),
-                'count' => $item->count
-            ];
-        });
+        ->pluck('count', 'date');
+
+    $eventsOverTime = collect();
+    for ($i = 7; $i >= 0; $i--) {
+        $carbonDate = now()->subDays($i);
+        $dateStr = $carbonDate->format('Y-m-d');
+        $displayDate = $carbonDate->format('M d');
+        
+        $eventsOverTime->push([
+            'date' => $displayDate,
+            'count' => $eventsOverTimeRaw->get($dateStr, 0)
+        ]);
+    }
 
     // Chart Data: Block-wise Weekly Status Bar Chart
     $blocks = [

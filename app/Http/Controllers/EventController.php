@@ -80,17 +80,22 @@ class EventController extends Controller
             })->sortByDesc('count')->values();
 
         // Chart Data: Events over last 30 days Area Chart
-        $thirtyDaysAgo = now()->subDays(30)->format('Y-m-d');
-        $eventsOverTime = Event::where('event_date', '>=', $thirtyDaysAgo)
+        $eventsOverTimeRaw = Event::where('event_date', '>=', now()->subDays(30)->format('Y-m-d'))
             ->selectRaw('DATE(event_date) as date, COUNT(*) as count')
             ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->get()->map(function($item) {
-                return [
-                    'date' => \Carbon\Carbon::parse($item->date)->format('M d'),
-                    'count' => $item->count
-                ];
-            });
+            ->pluck('count', 'date');
+
+        $eventsOverTime = collect();
+        for ($i = 30; $i >= 0; $i--) {
+            $carbonDate = now()->subDays($i);
+            $dateStr = $carbonDate->format('Y-m-d');
+            $displayDate = $carbonDate->format('M d');
+            
+            $eventsOverTime->push([
+                'date' => $displayDate,
+                'count' => $eventsOverTimeRaw->get($dateStr, 0)
+            ]);
+        }
 
         $envFile = base_path('.env');
         $envContent = file_exists($envFile) ? file_get_contents($envFile) : '';
