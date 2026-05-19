@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 
 export default function Dashboard({ metrics, recentEvents, recentFailures, autoSyncPaused, statusData = [], eventsByBlock = [], eventsOverTime = [], portalConfig = {} }) {
     const { auth } = usePage().props;
-    const isDistrictAdmin = auth.user.role === 'district_admin';
+    const isDistrictAdmin = auth.user.role === 'admin';
 
     const [filterDate, setFilterDate] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
