@@ -61,6 +61,12 @@ class SyncEventJob implements ShouldQueue
         // Always refresh from DB to get the latest state — model may be stale from dispatch time.
         $this->event->refresh();
 
+        // Infinite retry loop for server downtime: reset counter at 9 to prevent permanent failure
+        if ($this->event->sync_attempts >= 9) {
+            $this->event->update(['sync_attempts' => 0]);
+            $this->event->refresh();
+        }
+
         // Overflow guard: dead-letter records that have exhausted all retry allocation slots.
         if ($this->event->sync_attempts >= 10) {
             $this->event->markFailedPermanently(
