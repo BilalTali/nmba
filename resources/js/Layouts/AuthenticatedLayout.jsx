@@ -39,6 +39,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Dashboard
                                 </NavLink>
                                 <NavLink
+                                    href={route('events.index')}
+                                    active={route().current('events.index')}
+                                    className="text-sm font-semibold"
+                                >
+                                    View Events
+                                </NavLink>
+                                <NavLink
                                     href={route('events.create')}
                                     active={route().current('events.create')}
                                     className="text-sm font-semibold"
@@ -77,9 +84,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>
-                                            Profile
-                                        </Dropdown.Link>
+                                        {user.role !== 'event_creator' && (
+                                            <Dropdown.Link href={route('profile.edit')}>
+                                                Profile
+                                            </Dropdown.Link>
+                                        )}
                                         <Dropdown.Link href={route('logout')} method="post" as="button">
                                             Log Out
                                         </Dropdown.Link>
@@ -117,6 +126,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            href={route('events.index')}
+                            active={route().current('events.index')}
+                        >
+                            View Events
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
                             href={route('events.create')}
                             active={route().current('events.create')}
                         >
@@ -135,7 +150,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
+                            {user.role !== 'event_creator' && (
+                                <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
+                            )}
                             <ResponsiveNavLink method="post" href={route('logout')} as="button">
                                 Log Out
                             </ResponsiveNavLink>

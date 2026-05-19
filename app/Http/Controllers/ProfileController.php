@@ -18,6 +18,10 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        if ($request->user()->role === 'event_creator') {
+            abort(403, 'Unauthorized action. Event creators cannot update their profile or change password.');
+        }
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
@@ -29,6 +33,10 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        if ($request->user()->role === 'event_creator') {
+            abort(403, 'Unauthorized action. Event creators cannot update their profile or change password.');
+        }
+
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -45,6 +53,10 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if ($request->user()->role === 'event_creator') {
+            abort(403, 'Unauthorized action. Event creators cannot delete their profile.');
+        }
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);
