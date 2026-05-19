@@ -49,7 +49,10 @@ class BlockEventController extends Controller
 
         dispatch(new SyncEventJob($event));
 
+        $blockName = auth()->user()->block?->name ?? 'your block';
+        $successMessage = "Event submitted successfully! <br><span class='text-emerald-900 font-bold'>Recorded for Jurisdiction: {$blockName}</span>";
+
         return redirect()->route('block.events.index')
-            ->with('success', 'Event submitted successfully.');
+            ->with('success', $successMessage);
     }
 }

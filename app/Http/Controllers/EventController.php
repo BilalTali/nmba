@@ -211,8 +211,11 @@ class EventController extends Controller
         // Dispatch the job — the persistent queue daemon (php artisan queue:work) picks it up immediately.
         SyncEventJob::dispatch($event);
 
+        $blockName = \App\Models\Block::find($validated['block_id'])?->name ?? 'selected block';
+        $successMessage = "Event logged successfully! <br><span class='text-emerald-900 font-bold'>Recorded for Jurisdiction: {$blockName}</span>";
+
         return redirect()->route('dashboard')
-            ->with('success', 'Event logged and syncing to the portal in the background.');
+            ->with('success', $successMessage);
     }
 
     /**

@@ -160,21 +160,21 @@ export default function AuthenticatedLayout({ header, children }) {
             {/* Flash Messages */}
             {flash?.success && flashVisible && (
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-                    <div className="flex items-start justify-between gap-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 shadow-sm animate-[fadeIn_0.5s_ease-out]">
                         <div className="flex items-center gap-3">
-                            <div className="shrink-0 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
+                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <p className="text-sm font-semibold text-emerald-800">{flash.success}</p>
+                            <div className="text-sm font-medium text-emerald-800" dangerouslySetInnerHTML={{ __html: flash.success }}></div>
                         </div>
                         <button
                             onClick={() => setFlashVisible(false)}
-                            className="shrink-0 text-emerald-400 hover:text-emerald-600 transition-colors"
+                            className="shrink-0 text-emerald-400 hover:text-emerald-600 transition-colors mt-1"
                             aria-label="Dismiss"
                         >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>

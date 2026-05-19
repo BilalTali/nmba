@@ -3,9 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function Create() {
+    const todayStr = new Date().toISOString().split('T')[0];
+
     const { data, setData, post, processing, errors } = useForm({
         event_name: '',
-        event_date: '',
+        event_date: todayStr,
         event_venue: '',
         event_category: [],
         event_category_remark: '',
@@ -139,8 +141,8 @@ export default function Create() {
                                         
                                         <div>
                                             <label className="block text-sm font-bold text-slate-700">Event Date</label>
-                                            <input type="date" value={data.event_date} onChange={e => setData('event_date', e.target.value)}
-                                                className="mt-2 block w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:bg-white transition-all" required />
+                                            <input type="date" value={data.event_date} readOnly min={todayStr} max={todayStr}
+                                                className="mt-2 block w-full rounded-xl border-slate-200 bg-emerald-50 text-emerald-700 font-semibold shadow-inner cursor-not-allowed py-3 px-4" required />
                                             {errors.event_date && <p className="text-red-500 text-xs mt-1">{errors.event_date}</p>}
                                         </div>
 
