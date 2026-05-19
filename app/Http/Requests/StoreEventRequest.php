@@ -104,7 +104,7 @@ class StoreEventRequest extends FormRequest
                     }
                 }
             ],
-            'actual_attendance' => ['required', 'integer', 'min:1'],
+            'actual_attendance' => ['required', 'integer', 'min:20'],
 
             // Multi-select audience and age demographics
             'target_audience'   => ['required', 'array', 'min:1'],

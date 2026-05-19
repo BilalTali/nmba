@@ -228,7 +228,7 @@ export default function Create({ blocks }) {
                                         <div className="space-y-6">
                                             <div>
                                                 <label className="block text-sm font-bold text-slate-700">Actual Attendance</label>
-                                                <input type="number" min="1" value={data.actual_attendance} onChange={e => setData('actual_attendance', e.target.value)}
+                                                <input type="number" min="20" value={data.actual_attendance} onChange={e => setData('actual_attendance', e.target.value)}
                                                     className="mt-2 block w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 transition-all" required />
                                                 {errors.actual_attendance && <p className="text-red-500 text-xs mt-1">{errors.actual_attendance}</p>}
                                             </div>
