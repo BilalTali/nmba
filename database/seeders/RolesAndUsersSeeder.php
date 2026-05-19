@@ -16,8 +16,8 @@ class RolesAndUsersSeeder extends Seeder
             ['email' => 'admin@district.com'],
             [
                 'name' => 'District Admin',
-                'role' => 'district_admin',
-                'password' => bcrypt('password'),
+                'role' => 'admin',
+                'password' => 'password', // will be hashed via the User model mutator
             ]
         );
 
@@ -25,8 +25,9 @@ class RolesAndUsersSeeder extends Seeder
             ['email' => 'creator@district.com'],
             [
                 'name' => 'Event Creator',
-                'role' => 'event_creator',
-                'password' => bcrypt('password'),
+                'role' => 'block_worker',
+                'block_id' => 14, // Assigning to 'Badgam' block for testing
+                'password' => 'password',
             ]
         );
     }

@@ -54,13 +54,7 @@ Route::get('/', function () {
     }
 
     // Chart Data: Block-wise Weekly Status Bar Chart
-    $blocks = [
-        13 => 'B.K.Pora', 14 => 'Badgam', 15 => 'Beerwah', 16 => 'Chadoora',
-        17 => 'Khag', 18 => 'Khan-Sahib', 19 => 'Nagam', 20 => 'Narbal',
-        6915 => 'Parnewa', 6916 => 'Sukhnag Hard Panzoo', 6917 => 'Waterhail',
-        6918 => 'Pakherpora', 6919 => 'Charisharief', 6920 => 'Surasyar',
-        6921 => 'Soibugh', 6922 => 'Rathsun', 6923 => 'S K Pora',
-    ];
+    $blocks = \App\Models\Block::pluck('name', 'id')->toArray();
 
     $blockData = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
         ->selectRaw('block_id, sync_status, DATE(created_at) as created_date, COUNT(*) as count')
@@ -109,13 +103,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', [\App\Http\Controllers\EventController::class, 'dashboard'])
-    ->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\EventController::class, 'dashboard'])->name('dashboard');
+    Route::resource('users', \App\Http\Controllers\UserController::class);
 
     Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
     Route::get('/events/create', [\App\Http\Controllers\EventController::class, 'create'])->name('events.create');
@@ -138,6 +128,20 @@ Route::middleware('auth')->group(function () {
     // Setting env route
     Route::post('/settings/env', [\App\Http\Controllers\SettingsController::class, 'updateEnv'])
         ->middleware('throttle:10,1')->name('settings.env');
+});
+
+// Common authenticated routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Block worker routes
+Route::middleware(['auth'])->prefix('block')->name('block.')->group(function () {
+    Route::get('/events', [\App\Http\Controllers\BlockEventController::class, 'index'])->name('events.index');
+    Route::get('/events/create', [\App\Http\Controllers\BlockEventController::class, 'create'])->name('events.create');
+    Route::post('/events', [\App\Http\Controllers\BlockEventController::class, 'store'])->name('events.store');
 });
 
 require __DIR__.'/auth.php';

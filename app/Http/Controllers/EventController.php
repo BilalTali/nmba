@@ -25,13 +25,7 @@ class EventController extends Controller
 
     private function getBlocks(): array
     {
-        return [
-            13 => 'B.K.Pora', 14 => 'Badgam', 15 => 'Beerwah', 16 => 'Chadoora',
-            17 => 'Khag', 18 => 'Khan-Sahib', 19 => 'Nagam', 20 => 'Narbal',
-            6915 => 'Parnewa', 6916 => 'Sukhnag Hard Panzoo', 6917 => 'Waterhail',
-            6918 => 'Pakherpora', 6919 => 'Charisharief', 6920 => 'Surasyar',
-            6921 => 'Soibugh', 6922 => 'Rathsun', 6923 => 'S K Pora',
-        ];
+        return \App\Models\Block::orderBy('name')->pluck('name', 'id')->toArray();
     }
 
     public function dashboard(): \Inertia\Response
@@ -448,7 +442,7 @@ class EventController extends Controller
                     is_array($event->event_category) ? implode(', ', $event->event_category) : $event->event_category,
                     $event->event_category_remark ?? '',
                     $event->district_id ?? '',
-                    $event->district_name ?? 'Budgam',
+                    $event->district_name ?? config('app.district_name'),
                     $blocks[$event->block_id] ?? $event->block_id,
                     $event->ward ?? '',
                     $event->village ?? '',

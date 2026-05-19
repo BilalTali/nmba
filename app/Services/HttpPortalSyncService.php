@@ -179,7 +179,7 @@ class HttpPortalSyncService implements PortalSyncInterface
                 ['name' => 'event_name',                        'contents' => $event->event_name],
                 ['name' => 'event_date',                        'contents' => $event->event_date->format('d-m-Y')],
                 ['name' => 'event_venue',                       'contents' => $event->event_venue],
-                ['name' => 'district',                          'contents' => 'Budgam'],
+                ['name' => 'district',                          'contents' => config('app.district_name')],
                 ['name' => 'block',                             'contents' => (string) $event->block_id],
                 ['name' => 'ward',                              'contents' => (string) ($event->ward ?? '')],
                 ['name' => 'village',                           'contents' => (string) ($event->village ?? '')],

@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | District Settings
+    |--------------------------------------------------------------------------
+    |
+    | Global district identifiers for NMBA reporting.
+    |
+    */
+    
+    'district_id'   => env('DISTRICT_ID', 5),
+    'district_name' => env('DISTRICT_NAME', 'Budgam'),
+
 ];

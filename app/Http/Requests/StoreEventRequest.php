@@ -43,9 +43,9 @@ class StoreEventRequest extends FormRequest
             $merges['age_group'] = array_map('trim', $this->age_group);
         }
 
-        // Auto-populate district — always Budgam per spec.
-        $merges['district_id']   = (int) config('nmba.district_id', 5);
-        $merges['district_name'] = 'Budgam';
+        // Auto-populate district from global environment config
+        $merges['district_id']   = (int) config('app.district_id', 5);
+        $merges['district_name'] = config('app.district_name', 'Budgam');
 
         // Remove auto-inferrence of attendance_range so the form's manual selection is respected.
 
@@ -79,7 +79,7 @@ class StoreEventRequest extends FormRequest
             // Block jurisdiction
             'block_id' => [
                 'required', 'integer',
-                Rule::in([13, 14, 15, 16, 17, 18, 19, 20, 6915, 6916, 6917, 6918, 6919, 6920, 6921, 6922, 6923]),
+                Rule::exists('blocks', 'id'),
             ],
 
             // Optional location fields

@@ -32,7 +32,14 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id'         => $request->user()->id,
+                    'name'       => $request->user()->name,
+                    'email'      => $request->user()->email,
+                    'role'       => $request->user()->role,
+                    'block_id'   => $request->user()->block_id,
+                    'block_name' => $request->user()->block?->name,
+                ] : null,
             ],
             // Flash messages — shared globally so AuthenticatedLayout renders them as banners.
             'flash' => [
