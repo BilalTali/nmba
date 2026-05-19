@@ -200,7 +200,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1">
                                     <h3 className="text-slate-800 text-lg font-bold mb-4">Sync Status</h3>
                                     <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <PieChart>
                                                 <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5}>
                                                     {statusData.map((entry, index) => (
@@ -225,7 +225,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1 lg:col-span-2">
                                     <h3 className="text-slate-800 text-lg font-bold mb-4">Events Over Last 30 Days</h3>
                                     <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <AreaChart data={eventsOverTime} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                                 <defs>
                                                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
@@ -247,7 +247,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1 lg:col-span-3">
                                     <h3 className="text-slate-800 text-lg font-bold mb-4">Events by Block</h3>
                                     <div className="h-72">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <BarChart data={eventsByBlock} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                                 <XAxis dataKey="name" angle={-45} textAnchor="end" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 12}} height={60} />

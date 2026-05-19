@@ -51,11 +51,13 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
-        // If password is not already hashed
-        if (\Illuminate\Support\Str::startsWith($value, '$argon2id$')) {
+        // If password is not already hashed (checks for argon2id, bcrypt $2y$, or standard bcrypt $2a$)
+        if (\Illuminate\Support\Str::startsWith($value, '$argon2id$') || 
+            \Illuminate\Support\Str::startsWith($value, '$2y$') || 
+            \Illuminate\Support\Str::startsWith($value, '$2a$')) {
             $this->attributes['password'] = $value;
         } else {
-            $this->attributes['password'] = \Illuminate\Support\Facades\Hash::driver('argon2id')->make($value);
+            $this->attributes['password'] = \Illuminate\Support\Facades\Hash::make($value);
         }
     }
 
