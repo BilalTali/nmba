@@ -171,13 +171,14 @@ export default function Index({ events, blocks, filters }) {
                     ) : (
                         <div className="space-y-6">
                             {/* Desktop Tabular List View */}
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hidden md:block">
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hidden lg:block">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200">
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500 w-16">ID</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Event Details</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Block & Venue</th>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Demographics</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Date</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Attendance</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Coordinator</th>
@@ -195,6 +196,11 @@ export default function Index({ events, blocks, filters }) {
                                                     <div className="text-[10px] text-emerald-700 font-extrabold mt-0.5 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
                                                         {event.event_category ? (Array.isArray(event.event_category) ? event.event_category.join(', ') : JSON.parse(event.event_category).join(', ')) : 'N/A'}
                                                     </div>
+                                                    {event.event_category_remark && (
+                                                        <div className="text-[11px] text-rose-600 font-bold mt-1 bg-rose-50/50 px-2 py-1 rounded-lg border border-rose-100/50 max-w-xs">
+                                                            Remark: {event.event_category_remark}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm font-extrabold text-slate-800">
@@ -203,6 +209,22 @@ export default function Index({ events, blocks, filters }) {
                                                     <div className="text-xs text-slate-500 mt-0.5 max-w-xs truncate">
                                                         {event.event_venue}
                                                         {[event.ward ? ` (Ward: ${event.ward})` : '', event.village ? ` (Village: ${event.village})` : ''].filter(Boolean).join('')}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                                        {event.target_audience && (Array.isArray(event.target_audience) ? event.target_audience : JSON.parse(event.target_audience)).map((aud, idx) => (
+                                                            <span key={idx} className="inline-block text-[9px] font-black uppercase tracking-wide bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                                                                {aud}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 mt-1.5 max-w-[200px]">
+                                                        {event.age_group && (Array.isArray(event.age_group) ? event.age_group : JSON.parse(event.age_group)).map((age, idx) => (
+                                                            <span key={idx} className="inline-block text-[9px] font-black uppercase tracking-wide bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">
+                                                                {age}
+                                                            </span>
+                                                        ))}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm font-semibold text-slate-600">
@@ -215,6 +237,14 @@ export default function Index({ events, blocks, filters }) {
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm font-extrabold text-slate-800">{event.event_coordinator_name}</div>
                                                     <div className="text-xs text-slate-400 font-bold">{event.event_coordinator_desig}</div>
+                                                    {event.event_coordinator_contact_number && (
+                                                        <div className="text-[11px] text-slate-500 font-bold mt-1 flex items-center gap-1.5">
+                                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                            </svg>
+                                                            {event.event_coordinator_contact_number}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     {getStatusBadge(event.sync_status)}
@@ -226,7 +256,7 @@ export default function Index({ events, blocks, filters }) {
                             </div>
 
                             {/* Mobile responsive item list view */}
-                            <div className="space-y-4 md:hidden">
+                            <div className="space-y-4 lg:hidden">
                                 {events.data.map((event) => (
                                     <div key={event.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                                         <div className="flex justify-between items-start gap-4">
@@ -252,9 +282,28 @@ export default function Index({ events, blocks, filters }) {
                                             </div>
                                         </div>
 
-                                        <div className="text-xs text-slate-500 space-y-1">
+                                        <div className="text-xs text-slate-500 space-y-1.5">
                                             <p className="line-clamp-2"><span className="font-bold text-slate-700">Venue:</span> {event.event_venue}</p>
+                                            {event.event_category_remark && <p className="text-rose-600"><span className="font-bold">Remark:</span> {event.event_category_remark}</p>}
                                             <p><span className="font-bold text-slate-700">Coordinator:</span> {event.event_coordinator_name} ({event.event_coordinator_desig})</p>
+                                            {event.event_coordinator_contact_number && <p><span className="font-bold text-slate-700">Contact:</span> {event.event_coordinator_contact_number}</p>}
+                                        </div>
+
+                                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                                            <div className="flex flex-wrap gap-1">
+                                                {event.target_audience && (Array.isArray(event.target_audience) ? event.target_audience : JSON.parse(event.target_audience)).map((aud, idx) => (
+                                                    <span key={idx} className="inline-block text-[9px] font-black uppercase tracking-wide bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                                                        {aud}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {event.age_group && (Array.isArray(event.age_group) ? event.age_group : JSON.parse(event.age_group)).map((age, idx) => (
+                                                    <span key={idx} className="inline-block text-[9px] font-black uppercase tracking-wide bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">
+                                                        {age}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
