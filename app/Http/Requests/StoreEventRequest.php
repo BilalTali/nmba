@@ -47,7 +47,11 @@ class StoreEventRequest extends FormRequest
         $merges['district_id']   = (int) config('app.district_id', 5);
         $merges['district_name'] = config('app.district_name', 'Budgam');
 
-        // Remove auto-inferrence of attendance_range so the form's manual selection is respected.
+        // For block workers, auto-inject their block_id so it passes validation
+        // (block field is read-only in the UI and set server-side from the user's profile)
+        if (auth()->check() && auth()->user()->role === 'block_worker') {
+            $merges['block_id'] = auth()->user()->block_id;
+        }
 
         $this->merge($merges);
     }
