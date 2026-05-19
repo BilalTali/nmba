@@ -157,7 +157,8 @@ class EventController extends Controller
             $validated['event_date'],
             $validated['event_venue'],
             (int) $validated['actual_attendance'],
-            (int) $validated['block_id']
+            (int) $validated['block_id'],
+            $validated['coordinator_name'] ?? ''
         );
 
         if (Event::where('unique_hash', $uniqueHash)->exists()) {

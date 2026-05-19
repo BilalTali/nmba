@@ -100,14 +100,17 @@ class Event extends Model
         string $date,
         string $venue,
         int $attendance,
-        int $blockId
+        int $blockId,
+        string $coordinatorName
     ): string {
         return md5(
             strtolower(trim($name)) . '|' .
             strtolower(trim($date)) . '|' .
             strtolower(trim($venue)) . '|' .
             $attendance . '|' .
-            $blockId
+            $blockId . '|' .
+            strtolower(trim($coordinatorName)) . '|' .
+            uniqid('', true)
         );
     }
 
