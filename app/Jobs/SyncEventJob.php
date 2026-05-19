@@ -106,11 +106,20 @@ class SyncEventJob implements ShouldQueue
             if ($success) {
                 $this->event->markSynced();
 
-                // Post-sync media cleanup: delete local files to maintain zero disk footprint.
+                // Post-sync media management: move files to 'events/synced' folder so they can be deleted later via frontend
+                $newPaths = [];
                 foreach ($storedPaths as $path) {
                     if (Storage::disk('public')->exists($path)) {
-                        Storage::disk('public')->delete($path);
+                        $newPath = str_replace('events/', 'events/synced/', $path);
+                        Storage::disk('public')->move($path, $newPath);
+                        $newPaths[] = $newPath;
                     }
+                }
+                
+                // Update the event with the new photo paths
+                if (!empty($newPaths)) {
+                    $this->event->photo_paths = $newPaths;
+                    $this->event->save();
                 }
 
                 Log::channel('sync')->info('Event synchronized successfully. Local media purged.', [

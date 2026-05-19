@@ -466,4 +466,36 @@ class EventController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Purge all media files for successfully synced events to save disk space.
+     */
+    public function purgeSyncedMedia()
+    {
+        $events = Event::where('sync_status', 'synced')
+            ->whereNotNull('photo_paths')
+            ->get();
+
+        $deletedCount = 0;
+
+        /** @var \App\Models\Event $event */
+        foreach ($events as $event) {
+            $paths = $event->photo_paths;
+            if (is_array($paths)) {
+                foreach ($paths as $path) {
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                        $deletedCount++;
+                    }
+                }
+            }
+            
+            // Clear the paths from DB
+            $event->update(['photo_paths' => []]);
+        }
+
+        Log::channel('sync')->info("Admin purged synced media files.", ['files_deleted' => $deletedCount, 'admin_id' => auth()->id()]);
+
+        return back()->with('success', "Successfully purged {$deletedCount} media files from synced events.");
+    }
 }
