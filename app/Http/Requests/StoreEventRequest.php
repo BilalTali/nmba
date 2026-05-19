@@ -67,7 +67,7 @@ class StoreEventRequest extends FormRequest
             'event_category'   => ['required', 'array', 'min:1'],
             'event_category.*' => [
                 'required', 'string',
-                Rule::in(['Cultural', 'Awareness', 'Sports', 'Training & Counselling', 'Others']),
+                Rule::in(['Cultural', 'Awareness', 'Sports', 'Training & Counselling']),
             ],
             
             'event_category_remark' => ['nullable', 'string', 'max:255'],
@@ -94,7 +94,7 @@ class StoreEventRequest extends FormRequest
                     $actual = request()->input('actual_attendance');
                     if (is_numeric($actual) && $actual > 0) {
                         try {
-                            $inferred = \App\Models\Event::inferAttendanceRange((int)$actual);
+                            $inferred = Event::inferAttendanceRange((int)$actual);
                             if ($value !== $inferred) {
                                 $fail("The selected attendance range does not match the actual attendance count (which falls in range '{$inferred}').");
                             }

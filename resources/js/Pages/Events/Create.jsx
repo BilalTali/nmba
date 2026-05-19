@@ -82,7 +82,7 @@ export default function Create({ blocks }) {
     };
     const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-    const categories = ['Cultural', 'Awareness', 'Sports', 'Training & Counselling', 'Others'];
+    const categories = ['Cultural', 'Awareness', 'Sports', 'Training & Counselling'];
     const audiences = ['Civil Society', 'Students', 'Youth', 'Transporters', 'Other'];
     const ages = ['Under 18', '18-25', '25-35', '35-45', '45-55', 'Above 55'];
 
@@ -195,13 +195,6 @@ export default function Create({ blocks }) {
                                                 ))}
                                             </div>
                                             {errors.event_category && <p className="text-red-500 text-xs mt-1">{errors.event_category}</p>}
-                                            
-                                            {data.event_category.includes('Others') && (
-                                                <div className="mt-3 transform transition-all duration-300 ease-in-out">
-                                                    <input type="text" placeholder="Specify Other Category" value={data.event_category_remark} onChange={e => setData('event_category_remark', e.target.value)}
-                                                        className="block w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 shadow-sm focus:border-emerald-500 focus:ring-emerald-500" />
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div>
