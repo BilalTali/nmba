@@ -407,9 +407,26 @@ class EventController extends Controller
         ];
 
         $columns = [
-            'ID', 'Event Name', 'Date', 'Venue', 'Block', 'Ward', 'Village',
-            'Categories', 'Target Audience', 'Age Groups', 'Actual Attendance', 
-            'Coordinator Name', 'Coordinator Contact', 'Coordinator Desig', 'Sync Status'
+            'ID',
+            'Event Name',
+            'Event Date',
+            'Event Venue',
+            'Categories',
+            'Category Remark',
+            'District ID',
+            'District Name',
+            'Block Name',
+            'Ward',
+            'Village',
+            'Attendance Range',
+            'Actual Attendance',
+            'Target Audience',
+            'Age Groups',
+            'Coordinator Name',
+            'Coordinator Contact',
+            'Coordinator Designation',
+            'Created At',
+            'Updated At'
         ];
 
         $callback = function() use($events, $columns, $blocks) {
@@ -420,19 +437,24 @@ class EventController extends Controller
                 $row = [
                     $event->id,
                     $event->event_name,
-                    $event->event_date->format('Y-m-d'),
+                    $event->event_date ? $event->event_date->format('Y-m-d') : '',
                     $event->event_venue,
+                    is_array($event->event_category) ? implode(', ', $event->event_category) : $event->event_category,
+                    $event->event_category_remark ?? '',
+                    $event->district_id ?? '',
+                    $event->district_name ?? 'Budgam',
                     $blocks[$event->block_id] ?? $event->block_id,
                     $event->ward ?? '',
                     $event->village ?? '',
-                    is_array($event->event_category) ? implode(', ', $event->event_category) : '',
-                    is_array($event->target_audience) ? implode(', ', $event->target_audience) : '',
-                    is_array($event->age_group) ? implode(', ', $event->age_group) : '',
+                    $event->attendance_range,
                     $event->actual_attendance,
+                    is_array($event->target_audience) ? implode(', ', $event->target_audience) : $event->target_audience,
+                    is_array($event->age_group) ? implode(', ', $event->age_group) : $event->age_group,
                     $event->event_coordinator_name,
                     $event->event_coordinator_contact_number,
                     $event->event_coordinator_desig,
-                    $event->sync_status
+                    $event->created_at ? $event->created_at->toDateTimeString() : '',
+                    $event->updated_at ? $event->updated_at->toDateTimeString() : ''
                 ];
                 fputcsv($file, $row);
             }
