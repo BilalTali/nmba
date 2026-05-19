@@ -36,8 +36,8 @@ Route::get('/', function () {
     ], fn($item) => $item['value'] > 0));
 
     // Chart Data: Events over last 7 days Area Chart
-    $eventsOverTimeRaw = \App\Models\Event::where('event_date', '>=', now()->subDays(7)->format('Y-m-d'))
-        ->selectRaw('DATE(event_date) as date, COUNT(*) as count')
+    $eventsOverTimeRaw = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
+        ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
         ->groupBy('date')
         ->pluck('count', 'date');
 

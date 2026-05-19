@@ -80,8 +80,8 @@ class EventController extends Controller
             })->sortByDesc('count')->values();
 
         // Chart Data: Events over last 30 days Area Chart
-        $eventsOverTimeRaw = Event::where('event_date', '>=', now()->subDays(30)->format('Y-m-d'))
-            ->selectRaw('DATE(event_date) as date, COUNT(*) as count')
+        $eventsOverTimeRaw = Event::where('created_at', '>=', now()->subDays(30)->startOfDay())
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->pluck('count', 'date');
 
