@@ -182,7 +182,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 {[
                                     { label: 'Total Events', value: metrics.total, color: 'text-slate-900', border: 'border-slate-200' },
                                     { label: 'Successfully Synced', value: metrics.synced, color: 'text-emerald-600', border: 'border-emerald-200' },
-                                    { label: 'Pending Sync', value: metrics.pending, color: 'text-amber-600', border: 'border-amber-200' },
+                                    { label: 'Pending / Syncing', value: metrics.pending + metrics.syncing, color: 'text-amber-600', border: 'border-amber-200' },
                                     { label: 'Permanently Failed', value: metrics.failed_perm, color: 'text-rose-600', border: 'border-rose-200' }
                                 ].map((stat, i) => (
                                     <div key={i} className={`bg-white p-6 rounded-3xl shadow-sm border ${stat.border} hover:shadow-md transition-shadow`}>

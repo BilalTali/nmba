@@ -24,7 +24,7 @@ Route::get('/', function () {
         ['label' => 'Total Events', 'value' => number_format(\App\Models\Event::count())],
         ['label' => 'Total Synced', 'value' => number_format($totalSynced)],
         ['label' => 'Synced Today', 'value' => number_format($syncedToday)],
-        ['label' => 'Pending / Failed', 'value' => number_format($totalPending + $totalFailed)],
+        ['label' => 'Pending / Syncing / Failed', 'value' => number_format($totalPending + $totalFailed + (int) $counts->get('syncing', 0))],
     ];
 
     // Chart Data: Status Pie Chart
