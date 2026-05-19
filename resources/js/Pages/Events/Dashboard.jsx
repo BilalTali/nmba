@@ -148,31 +148,33 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
 
                         {/* Portal Health Banner */}
-                        <div className={`px-6 py-5 rounded-2xl border transition-all duration-500 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 
-                            ${healthState.status === 'online' 
-                                ? (healthState.auto_sync_paused ? 'bg-amber-50/80 border-amber-200' : 'bg-emerald-50/80 border-emerald-200') 
-                                : healthState.status === 'offline' ? 'bg-rose-50/80 border-rose-200' : 'bg-white border-slate-200'}`}>
-                            <div className="flex items-center gap-4">
-                                <div className="relative flex h-4 w-4">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
-                                        ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-400' : 'bg-emerald-400') : healthState.status === 'offline' ? 'bg-rose-400' : 'bg-slate-400'}`}></span>
-                                    <span className={`relative inline-flex rounded-full h-4 w-4 
-                                        ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-500' : 'bg-emerald-500') : healthState.status === 'offline' ? 'bg-rose-500' : 'bg-slate-500'}`}></span>
-                                </div>
-                                <div>
-                                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 block">Connection Status</span>
-                                    <h4 className="text-base font-extrabold text-slate-800">
-                                        {healthState.status === 'probing' && 'Probing NashaMukt J&K Portal...'}
-                                        {healthState.status === 'offline' && <span className="text-rose-700">Offline (Timeout or 522 Error). Waiting for recovery.</span>}
-                                        {healthState.status === 'online' && (
-                                            healthState.auto_sync_paused 
-                                                ? <span className="text-amber-700">Online — Auto-Sync PAUSED ({healthState.pending_count} pending)</span>
-                                                : <span className="text-emerald-700">Online — Systems Operational {healthState.triggered_sync && `(Auto-syncing ${healthState.pending_count} events)`}</span>
-                                        )}
-                                    </h4>
+                        {isDistrictAdmin && (
+                            <div className={`px-6 py-5 rounded-2xl border transition-all duration-500 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 
+                                ${healthState.status === 'online' 
+                                    ? (healthState.auto_sync_paused ? 'bg-amber-50/80 border-amber-200' : 'bg-emerald-50/80 border-emerald-200') 
+                                    : healthState.status === 'offline' ? 'bg-rose-50/80 border-rose-200' : 'bg-white border-slate-200'}`}>
+                                <div className="flex items-center gap-4">
+                                    <div className="relative flex h-4 w-4">
+                                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
+                                            ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-400' : 'bg-emerald-400') : healthState.status === 'offline' ? 'bg-rose-400' : 'bg-slate-400'}`}></span>
+                                        <span className={`relative inline-flex rounded-full h-4 w-4 
+                                            ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-500' : 'bg-emerald-500') : healthState.status === 'offline' ? 'bg-rose-500' : 'bg-slate-500'}`}></span>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 block">Connection Status</span>
+                                        <h4 className="text-base font-extrabold text-slate-800">
+                                            {healthState.status === 'probing' && 'Probing NashaMukt J&K Portal...'}
+                                            {healthState.status === 'offline' && <span className="text-rose-700">Offline (Timeout or 522 Error). Waiting for recovery.</span>}
+                                            {healthState.status === 'online' && (
+                                                healthState.auto_sync_paused 
+                                                    ? <span className="text-amber-700">Online — Auto-Sync PAUSED ({healthState.pending_count} pending)</span>
+                                                    : <span className="text-emerald-700">Online — Systems Operational {healthState.triggered_sync && `(Auto-syncing ${healthState.pending_count} events)`}</span>
+                                            )}
+                                        </h4>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     
                         {/* Metrics Section */}
                         {isDistrictAdmin && (
