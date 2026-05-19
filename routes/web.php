@@ -1,0 +1,137 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::get('/', function () {
+    // Grouped sync statuses
+    $counts = \App\Models\Event::selectRaw('sync_status, COUNT(*) as total')
+        ->groupBy('sync_status')
+        ->pluck('total', 'sync_status');
+        
+    $totalSynced = (int) $counts->get('synced', 0);
+    $totalPending = (int) $counts->get('pending', 0);
+    $totalFailed = (int) $counts->get('failed_permanently', 0);
+    
+    // Synced today
+    $syncedToday = \App\Models\Event::where('sync_status', 'synced')
+        ->whereDate('updated_at', today())
+        ->count();
+
+    $liveMetrics = [
+        ['label' => 'Total Events', 'value' => number_format(\App\Models\Event::count())],
+        ['label' => 'Total Synced', 'value' => number_format($totalSynced)],
+        ['label' => 'Synced Today', 'value' => number_format($syncedToday)],
+        ['label' => 'Pending / Failed', 'value' => number_format($totalPending + $totalFailed)],
+    ];
+
+    // Chart Data: Status Pie Chart
+    $statusData = array_values(array_filter([
+        ['name' => 'Synced', 'value' => $totalSynced, 'fill' => '#10b981'],
+        ['name' => 'Pending', 'value' => $totalPending, 'fill' => '#f59e0b'],
+        ['name' => 'Failed', 'value' => $totalFailed, 'fill' => '#f43f5e'],
+        ['name' => 'Syncing', 'value' => (int) $counts->get('syncing', 0), 'fill' => '#3b82f6'],
+    ], fn($item) => $item['value'] > 0));
+
+    // Chart Data: Events over last 7 days Area Chart
+    $sevenDaysAgo = now()->subDays(7)->format('Y-m-d');
+    $eventsOverTime = \App\Models\Event::where('event_date', '>=', $sevenDaysAgo)
+        ->selectRaw('DATE(event_date) as date, COUNT(*) as count')
+        ->groupBy('date')
+        ->orderBy('date', 'asc')
+        ->get()->map(function($item) {
+            return [
+                'date' => \Carbon\Carbon::parse($item->date)->format('M d'),
+                'count' => $item->count
+            ];
+        });
+
+    // Chart Data: Block-wise Weekly Status Bar Chart
+    $blocks = [
+        13 => 'B.K.Pora', 14 => 'Badgam', 15 => 'Beerwah', 16 => 'Chadoora',
+        17 => 'Khag', 18 => 'Khan-Sahib', 19 => 'Nagam', 20 => 'Narbal',
+        6915 => 'Parnewa', 6916 => 'Sukhnag Hard Panzoo', 6917 => 'Waterhail',
+        6918 => 'Pakherpora', 6919 => 'Charisharief', 6920 => 'Surasyar',
+        6921 => 'Soibugh', 6922 => 'Rathsun', 6923 => 'S K Pora',
+    ];
+
+    $blockData = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
+        ->selectRaw('block_id, sync_status, DATE(created_at) as created_date, COUNT(*) as count')
+        ->groupBy('block_id', 'sync_status', 'created_date')
+        ->get();
+
+    $eventsByBlock = [];
+    foreach ($blocks as $id => $name) {
+        $eventsByBlock[$id] = [
+            'name' => $name, 
+            'today_synced' => 0, 'today_pending' => 0, 'today_failed' => 0,
+            'week_synced' => 0, 'week_pending' => 0, 'week_failed' => 0
+        ];
+    }
+    
+    $todayStr = now()->format('Y-m-d');
+
+    foreach ($blockData as $row) {
+        $id = $row->block_id;
+        if (!isset($eventsByBlock[$id])) continue;
+        
+        $isToday = ($row->created_date === $todayStr);
+        $status = $row->sync_status;
+        
+        if ($status === 'synced') {
+            $eventsByBlock[$id]['week_synced'] += $row->count;
+            if ($isToday) $eventsByBlock[$id]['today_synced'] += $row->count;
+        } elseif ($status === 'pending' || $status === 'syncing') {
+            $eventsByBlock[$id]['week_pending'] += $row->count;
+            if ($isToday) $eventsByBlock[$id]['today_pending'] += $row->count;
+        } else {
+            $eventsByBlock[$id]['week_failed'] += $row->count;
+            if ($isToday) $eventsByBlock[$id]['today_failed'] += $row->count;
+        }
+    }
+    
+    $eventsByBlock = array_values(array_filter($eventsByBlock, fn($b) => $b['week_synced'] > 0 || $b['week_pending'] > 0 || $b['week_failed'] > 0));
+    usort($eventsByBlock, fn($a, $b) => ($b['week_synced'] + $b['week_pending'] + $b['week_failed']) - ($a['week_synced'] + $a['week_pending'] + $a['week_failed']));
+
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'liveMetrics' => $liveMetrics,
+        'statusData' => $statusData,
+        'eventsOverTime' => $eventsOverTime,
+        'eventsByBlock' => $eventsByBlock
+    ]);
+});
+
+Route::get('/dashboard', [\App\Http\Controllers\EventController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/events/create', [\App\Http\Controllers\EventController::class, 'create'])->name('events.create');
+    Route::post('/events', [\App\Http\Controllers\EventController::class, 'store'])->name('events.store');
+    Route::get('/events/export', [\App\Http\Controllers\EventController::class, 'exportCsv'])->name('events.export');
+    
+    // Admin routes — rate limited to prevent self-inflicted DoS
+    Route::post('/events/{event}/toggle-sync', [\App\Http\Controllers\EventController::class, 'toggleSyncStatus'])
+        ->middleware('throttle:15,1')->name('events.toggleSync');
+    Route::post('/events/{event}/retry-sync', [\App\Http\Controllers\EventController::class, 'retrySync'])
+        ->middleware('throttle:5,1')->name('events.retrySync');
+    Route::post('/events/toggle-auto-sync', [\App\Http\Controllers\EventController::class, 'toggleAutoSync'])
+        ->middleware('throttle:10,1')->name('events.toggleAutoSync');
+    Route::post('/events/force-sync', [\App\Http\Controllers\EventController::class, 'forceSync'])
+        ->middleware('throttle:5,1')->name('events.force-sync');
+    // Polled every 15s — allow max 10/min per user (2x safety margin)
+    Route::get('/events/check-portal', [\App\Http\Controllers\EventController::class, 'checkPortalHealth'])
+        ->middleware('throttle:10,1')->name('events.check-portal');
+
+    // Setting env route
+    Route::post('/settings/env', [\App\Http\Controllers\SettingsController::class, 'updateEnv'])
+        ->middleware('throttle:10,1')->name('settings.env');
+});
+
+require __DIR__.'/auth.php';
