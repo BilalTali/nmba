@@ -69,6 +69,11 @@ class Kernel extends ConsoleKernel
             Log::channel('sync')->info('Scheduler sweep started.', ['candidate_count' => $events->count()]);
 
             foreach ($events as $event) {
+                $cacheKey = "sre_sync_dispatch_lock_{$event->id}";
+                if (Cache::has($cacheKey)) {
+                    continue;
+                }
+
                 // Atomic CAS update per record before dispatching — prevents scheduler-level
                 // duplicate dispatching across distributed worker nodes.
                 $updated = Event::where('id', $event->id)
@@ -90,6 +95,7 @@ class Kernel extends ConsoleKernel
                     ]);
 
                 if ($updated === 1) {
+                    Cache::put($cacheKey, true, 3600);
                     dispatch(new SyncEventJob($event));
                     Log::channel('sync')->info('Scheduler dispatched job.', ['event_id' => $event->id]);
                 }

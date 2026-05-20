@@ -346,6 +346,9 @@ class EventController extends Controller
                 ->chunk(100, function ($pendingEvents) {
                     foreach ($pendingEvents as $event) {
                         Cache::forget("manual_override_{$event->id}");
+                        Cache::forget("sre_sync_dispatch_lock_{$event->id}");
+                        // Establish fresh initial dispatch lock for 1 hour
+                        Cache::put("sre_sync_dispatch_lock_{$event->id}", true, 3600);
                         dispatch(new SyncEventJob($event));
                     }
                 });
@@ -538,8 +541,8 @@ class EventController extends Controller
         foreach ($pendingEvents as $event) {
             $cacheKey = "sre_sync_dispatch_lock_{$event->id}";
             if (!Cache::has($cacheKey)) {
-                // Lock dispatch for 60 seconds to prevent queue flooding on page refresh
-                Cache::put($cacheKey, true, 60);
+                // Lock dispatch for 1 hour (3600 seconds) to prevent queue flooding during outages
+                Cache::put($cacheKey, true, 3600);
                 dispatch(new SyncEventJob($event));
             }
         }

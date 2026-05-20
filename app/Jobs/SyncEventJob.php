@@ -108,6 +108,9 @@ class SyncEventJob implements ShouldQueue
             if ($success) {
                 $this->event->markSynced();
 
+                // Clear any pending dispatch cache lock
+                \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
+
                 // Audit log: record successful sync attempt
                 $this->writeSyncLog('success', null, null);
 
@@ -162,6 +165,9 @@ class SyncEventJob implements ShouldQueue
         // Reset sync status back to pending instead of keeping it in transient retry loop
         Event::where('id', $this->event->id)->update(['sync_status' => 'pending']);
 
+        // Clear dispatch lock since auto-sync is paused
+        \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
+
         // Pause auto-sync globally
         \Illuminate\Support\Facades\Cache::put('auto_sync_paused', true);
 
@@ -200,6 +206,9 @@ class SyncEventJob implements ShouldQueue
 
         $this->event->markFailed($errorMessage);
 
+        // Update dispatch lock to align with the backoff delay (plus 120s buffer)
+        \Illuminate\Support\Facades\Cache::put("sre_sync_dispatch_lock_{$this->event->id}", true, $delaySeconds + 120);
+
         Log::channel('sync')->warning('Transient sync failure. Job released with exponential backoff.', [
             'event_id'      => $this->event->id,
             'unique_hash'   => $this->event->unique_hash,
@@ -221,6 +230,9 @@ class SyncEventJob implements ShouldQueue
         $this->writeSyncLog('permanent_failure', null, $errorMessage);
 
         $this->event->markFailedPermanently($errorMessage);
+
+        // Clear dispatch lock
+        \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
 
         Log::channel('sync')->error('PERMANENT FAILURE: Event dead-lettered.', [
             'event_id'      => $this->event->id,
