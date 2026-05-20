@@ -32,18 +32,30 @@ class EventController extends Controller
     {
         $autoSyncPaused = Cache::get('auto_sync_paused', false);
 
-        // Single grouped query instead of 6 separate COUNT(*) calls
-        $counts = Event::selectRaw('sync_status, COUNT(*) as total')
-            ->groupBy('sync_status')
-            ->pluck('total', 'sync_status');
+        // Cache dashboard counts for 30 seconds to completely eliminate DB pressure under heavy polling
+        $cachedMetrics = Cache::remember('dashboard_metrics_counts', 30, function () {
+            $counts = Event::selectRaw('sync_status, COUNT(*) as total')
+                ->groupBy('sync_status')
+                ->pluck('total', 'sync_status');
 
+            $transient = Event::where('sync_attempts', '>', 0)
+                ->where('sync_status', 'pending')
+                ->count();
+
+            return [
+                'counts' => $counts->toArray(),
+                'transient' => $transient,
+            ];
+        });
+
+        $counts = collect($cachedMetrics['counts']);
         $metrics = [
             'total'       => $counts->sum(),
             'pending'     => (int) ($counts->get('pending', 0)),
             'syncing'     => (int) ($counts->get('syncing', 0)),
             'synced'      => (int) ($counts->get('synced', 0)),
             'failed_perm' => (int) ($counts->get('failed_permanently', 0)),
-            'transient'   => Event::where('sync_attempts', '>', 0)->where('sync_status', 'pending')->count(),
+            'transient'   => (int) $cachedMetrics['transient'],
         ];
 
         // Enqueue any pending events that slipped through — the persistent queue daemon will pick them up.
@@ -145,6 +157,24 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $coordinatorName = $validated['event_coordinator_name'] ?? '';
+
+        // 1. Concurrency Lock: Prevents double-submission from rapid duplicate clicks.
+        $lockHash = md5(
+            strtolower(trim($validated['event_name'])) . '|' .
+            strtolower(trim($validated['event_date'])) . '|' .
+            strtolower(trim($validated['event_venue'])) . '|' .
+            $validated['actual_attendance'] . '|' .
+            $validated['block_id'] . '|' .
+            strtolower(trim($coordinatorName))
+        );
+
+        $lockKey = "event_submit_lock_" . $lockHash;
+        if (Cache::has($lockKey)) {
+            return redirect()->back()->withInput()
+                ->withErrors(['duplicate' => 'A submission for this event is already in progress. Please wait a moment.']);
+        }
+        Cache::put($lockKey, true, 10); // 10-second lock to absorb double clicks
 
         $uniqueHash = Event::generateUniqueHash(
             $validated['event_name'],
@@ -152,18 +182,14 @@ class EventController extends Controller
             $validated['event_venue'],
             (int) $validated['actual_attendance'],
             (int) $validated['block_id'],
-            $validated['coordinator_name'] ?? ''
+            $coordinatorName
         );
-
-        if (Event::where('unique_hash', $uniqueHash)->exists()) {
-            return redirect()->back()->withInput()
-                ->withErrors(['duplicate' => 'An identical event record already exists in the system.']);
-        }
 
         $photoPaths = [];
         try {
             $photoPaths = $this->imageService->optimizeBatch($request->file('photo'));
         } catch (Exception $e) {
+            Cache::forget($lockKey); // Release lock immediately on exception
             Log::channel('sync')->warning('Image optimization failure.', ['error' => $e->getMessage()]);
             return redirect()->back()->withInput()
                 ->withErrors(['error' => 'Image processing failed: ' . $e->getMessage()]);
@@ -179,12 +205,16 @@ class EventController extends Controller
 
             DB::commit();
 
+            // Evict dashboard metrics cache on new event submission to keep the chart values fresh.
+            Cache::forget('dashboard_metrics_counts');
+
             Log::channel('sync')->info('Event created and queued.', [
                 'event_id' => $event->id, 'unique_hash' => $uniqueHash,
             ]);
 
         } catch (QueryException $e) {
             DB::rollBack();
+            Cache::forget($lockKey);
             foreach ($photoPaths as $path) {
                 if (Storage::disk('public')->exists($path)) {
                     Storage::disk('public')->delete($path);
@@ -198,6 +228,7 @@ class EventController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
+            Cache::forget($lockKey);
             foreach ($photoPaths as $path) {
                 if (Storage::disk('public')->exists($path)) {
                     Storage::disk('public')->delete($path);
@@ -240,6 +271,9 @@ class EventController extends Controller
                         dispatch(new SyncEventJob($event));
                     }
                 });
+
+            // Evict dashboard metrics cache so fresh values show up.
+            Cache::forget('dashboard_metrics_counts');
 
             return redirect()->route('dashboard')
                 ->with('success', 'Force sync triggered — the queue daemon will process all pending events now.');
@@ -333,6 +367,9 @@ class EventController extends Controller
             $message = "Event #{$event->id} manually marked as Synced!";
         }
 
+        // Evict dashboard metrics cache so fresh values show up.
+        Cache::forget('dashboard_metrics_counts');
+
         return redirect()->route('dashboard')->with('success', $message);
     }
 
@@ -352,6 +389,9 @@ class EventController extends Controller
 
         // 2. Dispatch a fresh job — the persistent queue daemon will process it immediately.
         dispatch(new SyncEventJob($event));
+
+        // Evict dashboard metrics cache so fresh values show up.
+        Cache::forget('dashboard_metrics_counts');
 
         return redirect()->route('dashboard')
             ->with('success', "Event #{$event->id} reset and queued for retry. The sync daemon will process it shortly.");
@@ -493,6 +533,9 @@ class EventController extends Controller
             // Clear the paths from DB
             $event->update(['photo_paths' => []]);
         }
+
+        // Evict dashboard metrics cache so fresh values show up.
+        Cache::forget('dashboard_metrics_counts');
 
         Log::channel('sync')->info("Admin purged synced media files.", ['files_deleted' => $deletedCount, 'admin_id' => auth()->id()]);
 

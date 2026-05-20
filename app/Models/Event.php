@@ -148,6 +148,8 @@ class Event extends Model
             'last_attempt_at'=> now(),
             'last_error_log' => null,
         ]);
+
+        \Illuminate\Support\Facades\Cache::forget('dashboard_metrics_counts');
     }
 
     /**
@@ -162,6 +164,8 @@ class Event extends Model
             'last_attempt_at'=> now(),
             'last_error_log' => mb_substr($error, 0, 5000),
         ]);
+
+        \Illuminate\Support\Facades\Cache::forget('dashboard_metrics_counts');
     }
 
     /**
@@ -175,5 +179,7 @@ class Event extends Model
             'last_attempt_at'=> now(),
             'last_error_log' => '[CRITICAL PERMANENT UNRECOVERABLE]: ' . mb_substr($error, 0, 5000),
         ]);
+
+        \Illuminate\Support\Facades\Cache::forget('dashboard_metrics_counts');
     }
 }
