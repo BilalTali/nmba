@@ -599,7 +599,8 @@ class EventController extends Controller
                 if (function_exists('exec')) {
                     exec($command . " > /dev/null 2>&1 &");
                 } else {
-                    Log::channel('sync')->warning('exec is disabled. Background queue worker could not be started.');
+                    // Hostinger disables exec(). We rely entirely on the Web Cron (nmba-cron.php)
+                    // Muted warning to prevent log spam during 15s health checks.
                 }
             }
         } catch (\Throwable $e) {
