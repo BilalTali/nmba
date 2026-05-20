@@ -102,6 +102,9 @@ class HttpPortalSyncService implements PortalSyncInterface
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept'     => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             ],
+            'curl'            => [
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            ],
         ]);
 
         try {
@@ -111,7 +114,7 @@ class HttpPortalSyncService implements PortalSyncInterface
                 Log::channel('sync')->info('No active portal session. Re-authenticating.');
                 
                 $cookieJar = new CookieJar();
-                $client = new Client([
+                 $client = new Client([
                     'cookies'         => $cookieJar,
                     'timeout'         => 30,
                     'connect_timeout' => 10,
@@ -120,6 +123,9 @@ class HttpPortalSyncService implements PortalSyncInterface
                     'headers'         => [
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         'Accept'     => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    ],
+                    'curl'            => [
+                        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                     ],
                 ]);
                 
