@@ -97,12 +97,20 @@ try {
     }
     $app = require_once APP_ROOT . '/bootstrap/app.php';
 
+    // Check if circuit breaker is active before running queue worker
+    if (\Illuminate\Support\Facades\Cache::get('sre_circuit_breaker_portal_down') === true) {
+        @unlink($lockFile);
+        http_response_code(200);
+        header('Content-Type: text/plain');
+        die('[' . date('Y-m-d H:i:s') . '] Circuit breaker active. Queue worker execution deferred.' . PHP_EOL);
+    }
+
     /** @var \Illuminate\Contracts\Console\Kernel $kernel */
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
     // Capture output of the Artisan command run
     $output = new \Symfony\Component\Console\Output\BufferedOutput();
-    $input = new \Symfony\Component\Console\Input\StringInput('queue:work database --max-jobs=10 --tries=10 --timeout=110 --stop-when-empty');
+    $input = new \Symfony\Component\Console\Input\StringInput('queue:work database --max-jobs=2 --tries=10 --timeout=110 --stop-when-empty');
 
     // Run the queue worker command internally in the current PHP process SAPI context
     $exitCode = $kernel->handle($input, $output);
@@ -123,7 +131,7 @@ try {
             ->where('available_at', '<=', time())
             ->count();
 
-        if ($remainingJobs > 0) {
+        if ($remainingJobs > 0 && \Illuminate\Support\Facades\Cache::get('sre_circuit_breaker_portal_down') !== true) {
             // Trigger next batch asynchronously via loopback call
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'] ?? 'nmbabudgam.in';
