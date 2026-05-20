@@ -33,7 +33,7 @@ class UserController extends Controller
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => 'Nmba@budgam', // Will be hashed via mutator
+            'password' => 'Welcome@123', // Will be hashed via mutator
             'role' => 'block_worker',
             'block_id' => $request->block_id,
         ]);
