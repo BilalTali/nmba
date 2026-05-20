@@ -67,6 +67,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->middleware('throttle:10,1')->name('events.toggleAutoSync');
     Route::post('/events/force-sync', [\App\Http\Controllers\EventController::class, 'forceSync'])
         ->name('events.force-sync');
+    Route::post('/events/run-queue-worker', [\App\Http\Controllers\EventController::class, 'runQueueWorkerManually'])
+        ->name('events.run-queue-worker');
+    Route::post('/events/clear-queue', [\App\Http\Controllers\EventController::class, 'clearQueueManually'])
+        ->name('events.clear-queue');
     Route::post('/events/reset-failed', [\App\Http\Controllers\EventController::class, 'resetFailedSyncs'])
         ->name('events.reset-failed');
     Route::post('/events/purge-synced-media', [\App\Http\Controllers\EventController::class, 'purgeSyncedMedia'])

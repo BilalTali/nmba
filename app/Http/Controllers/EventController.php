@@ -381,6 +381,66 @@ class EventController extends Controller
     }
 
     /**
+     * Executes the queue worker manually in-request to process up to 10 jobs.
+     */
+    public function runQueueWorkerManually(\Illuminate\Http\Request $request): RedirectResponse
+    {
+        // Clear the circuit breaker so sync attempts can proceed immediately.
+        Cache::forget('sre_circuit_breaker_portal_down');
+
+        $startTime = microtime(true);
+
+        try {
+            // Run the queue worker for up to 10 jobs synchronously
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                'connection' => 'database',
+                '--queue' => 'default',
+                '--max-jobs' => 10,
+                '--stop-when-empty' => true,
+                '--tries' => 1,
+                '--timeout' => 30
+            ]);
+
+            $duration = round(microtime(true) - $startTime, 2);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            // Evict dashboard metrics cache so fresh values show up.
+            Cache::forget('dashboard_metrics_counts');
+
+            return redirect()->route('dashboard')
+                ->with('success', "Queue worker run completed in {$duration}s. Output:\n" . ($output ?: 'No jobs were in the queue.'));
+        } catch (\Throwable $e) {
+            return redirect()->route('dashboard')
+                ->withErrors(['error' => 'Queue worker encountered an error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Clears all pending jobs in the queue.
+     */
+    public function clearQueueManually(\Illuminate\Http\Request $request): RedirectResponse
+    {
+        try {
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('queue:clear', [
+                'connection' => 'database',
+                '--queue' => 'default',
+                '--force' => true
+            ]);
+
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            // Evict dashboard metrics cache so fresh values show up.
+            Cache::forget('dashboard_metrics_counts');
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Queue cleared successfully! ' . ($output ?: 'All pending jobs removed.'));
+        } catch (\Throwable $e) {
+            return redirect()->route('dashboard')
+                ->withErrors(['error' => 'Queue clear encountered an error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Resets all failed or quarantined events back to pending status so they can be re-attempted.
      */
     public function resetFailedSyncs(\Illuminate\Http\Request $request): RedirectResponse

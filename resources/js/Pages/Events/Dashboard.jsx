@@ -184,6 +184,8 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
     const retrySync = (eventId) => post(route('events.retrySync', eventId));
     const toggleAutoSync = () => post(route('events.toggleAutoSync'));
     const forceSyncQueue = () => post(route('events.force-sync'));
+    const runQueueWorker = () => post(route('events.run-queue-worker'));
+    const clearQueue = () => post(route('events.clear-queue'));
     const resetFailedSyncs = () => post(route('events.reset-failed'));
 
     const filteredEvents = recentEvents.filter(event => {
@@ -224,6 +226,27 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     Force Sync
+                                </button>
+                                <button
+                                    onClick={runQueueWorker}
+                                    disabled={processing}
+                                    className="px-5 py-2.5 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 shadow-lg shadow-sky-600/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Work Queue
+                                </button>
+                                <button
+                                    onClick={clearQueue}
+                                    disabled={processing}
+                                    className="px-5 py-2.5 bg-rose-700 text-white font-bold rounded-xl hover:bg-rose-600 shadow-lg shadow-rose-700/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Clear Queue
                                 </button>
                                 <button
                                     onClick={resetFailedSyncs}
