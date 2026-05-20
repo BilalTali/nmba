@@ -181,8 +181,8 @@ export default function Index({ events, blocks, filters }) {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {/* Desktop Tabular List View */}
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-x-auto hidden lg:block">
+                            {/* Tabular List View */}
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-x-auto">
                                 <table className="w-full min-w-[1200px] text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200">
@@ -318,7 +318,7 @@ export default function Index({ events, blocks, filters }) {
                             </div>
 
                             {/* Mobile responsive item list view */}
-                            <div className="space-y-4 lg:hidden">
+                            <div className="space-y-4 hidden">
                                 {events.data.map((event) => (
                                     <div key={event.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                                         <div className="flex justify-between items-start gap-4">

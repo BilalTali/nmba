@@ -65,7 +65,7 @@ export default function Index({ events, block_name }) {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full min-w-[800px] text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50 border-b border-slate-200">
                                         <th className="py-4 px-6 text-xs font-black text-slate-500 uppercase tracking-wider">Event & Location</th>
