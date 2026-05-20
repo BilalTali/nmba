@@ -141,6 +141,7 @@ export default function SyncedIndex({ events, blocks, filters, totalSynced }) {
                                 <table className="w-full min-w-[1200px] text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200">
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500 w-16">S No.</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500 w-16">ID</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Event Details</th>
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500">Block & Venue</th>
@@ -152,8 +153,11 @@ export default function SyncedIndex({ events, blocks, filters, totalSynced }) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
-                                        {events.data.map((event) => (
+                                        {events.data.map((event, index) => (
                                             <tr key={event.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 text-xs font-black text-slate-400">
+                                                    {(events.from || 1) + index}
+                                                </td>
                                                 <td className="px-6 py-4 text-xs font-black text-slate-400">
                                                     #{event.id}
                                                 </td>
