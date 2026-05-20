@@ -136,6 +136,9 @@ class StoreEventRequest extends FormRequest
             // The ImageOptimizationService will compress down to ≤5 MB before portal submission.
             'photo'   => ['required', 'array', 'min:1', 'max:3'],
             'photo.*' => ['file', 'mimes:jpeg,jpg,png,gif', 'max:10240'],
+
+            // Client-side Device ID
+            'device_id' => ['nullable', 'string', 'max:255'],
         ];
     }
 

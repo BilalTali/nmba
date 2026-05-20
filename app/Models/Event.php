@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $sync_attempts
  * @property \Illuminate\Support\Carbon|null $last_attempt_at
  * @property string|null $last_error_log
+ * @property string|null $device_id
  */
 class Event extends Model
 {
@@ -66,6 +67,7 @@ class Event extends Model
         'last_attempt_at',
         'last_error_log',
         'uploader_ip',
+        'device_id',
         'synced_at',
     ];
 

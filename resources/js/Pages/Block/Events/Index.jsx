@@ -97,12 +97,12 @@ export default function Index({ events, block_name }) {
                                                             <span>Log: {new Date(event.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}, {new Date(event.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
                                                         </span>
 
-                                                        {/* Uploader IP */}
-                                                        <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/60 px-2 py-0.5 rounded-md font-mono" title="Uploader IP Address">
+                                                        {/* Device ID */}
+                                                        <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/60 px-2 py-0.5 rounded-md font-mono" title={`Device ID: ${event.device_id || 'Unknown'}`}>
                                                             <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                             </svg>
-                                                            <span>IP: {event.uploader_ip || 'Local'}</span>
+                                                            <span>Dev: {event.device_id ? event.device_id.substring(0, 8) : 'Unknown'}</span>
                                                         </span>
 
                                                         {/* Sync Timeline Badges */}

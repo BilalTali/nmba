@@ -2,6 +2,25 @@ import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 
+const getOrCreateDeviceUuid = () => {
+    if (typeof window === 'undefined') return '';
+    let uuid = localStorage.getItem('nmba_device_uuid');
+    if (!uuid) {
+        try {
+            uuid = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        } catch (e) {
+            uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        localStorage.setItem('nmba_device_uuid', uuid);
+    }
+    return uuid;
+};
+
 export default function Create({ blocks }) {
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -21,10 +40,16 @@ export default function Create({ blocks }) {
         event_coordinator_name: '',
         event_coordinator_contact_number: '',
         event_coordinator_desig: '',
-        photo: []
+        photo: [],
+        device_id: ''
     });
 
     const [step, setStep] = useState(1);
+
+    // Initialize Device ID on mount
+    useEffect(() => {
+        setData('device_id', getOrCreateDeviceUuid());
+    }, []);
 
     // Helper to calculate attendance range
     useEffect(() => {
