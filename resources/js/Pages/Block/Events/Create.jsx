@@ -174,7 +174,7 @@ export default function Create() {
                                         <div className="col-span-full">
                                             <label className="block text-sm font-bold text-slate-700">Event Venue</label>
                                             <input type="text" value={data.event_venue} onChange={e => setData('event_venue', e.target.value)}
-                                                className="mt-2 block w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="Enter full address of venue" required />
+                                                className="mt-2 block w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="Enter event venue" required />
                                             {errors.event_venue && <p className="text-red-500 text-xs mt-1">{errors.event_venue}</p>}
                                         </div>
 

@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
-export default function Welcome({ auth, liveMetrics = [], statusData = [], eventsOverTime = [], eventsByBlock = [] }) {
+export default function Welcome({ auth, liveMetrics = [], eventsOverTime = [], eventsByBlock = [] }) {
     return (
         <>
             <Head title="Nasha Mukt J&K Abhiyaan" />
@@ -71,12 +71,7 @@ export default function Welcome({ auth, liveMetrics = [], statusData = [], event
 
                         {/* Floating Stats Cards */}
                         <div id="stats" className="w-full max-w-6xl mx-auto mt-16 md:mt-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            {(liveMetrics || [
-                                { label: 'Total Events', value: '0' },
-                                { label: 'Total Synced', value: '0' },
-                                { label: 'Synced Today', value: '0' },
-                                { label: 'Pending/Rejected', value: '0' },
-                            ]).map((stat, i) => (
+                            {(liveMetrics || []).map((stat, i) => (
                                 <div key={i} className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 text-left shadow-2xl hover:bg-white/20 transition transform hover:-translate-y-1">
                                     <h4 className="text-emerald-200 text-sm font-bold uppercase tracking-wider mb-2">{stat.label}</h4>
                                     <p className="text-4xl font-extrabold text-white">{stat.value}</p>
@@ -85,36 +80,12 @@ export default function Welcome({ auth, liveMetrics = [], statusData = [], event
                         </div>
 
                         {/* Live Charts Section */}
-                        <div className="w-full max-w-6xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Sync Status Pie */}
-                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1">
-                                <h3 className="text-white text-lg font-bold mb-4">Live Sync Status</h3>
-                                <div className="h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5}>
-                                                {statusData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="flex flex-wrap justify-center gap-4 mt-2">
-                                    {statusData.map(entry => (
-                                        <div key={entry.name} className="flex items-center gap-1.5 text-sm font-medium text-emerald-100">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }}></div>
-                                            {entry.name} ({entry.value})
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        <div className="w-full max-w-6xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             {/* Events Over Time Area */}
-                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1 md:col-span-2">
+                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1">
                                 <h3 className="text-white text-lg font-bold mb-4">Events Registered (Last 7 Days)</h3>
-                                <div className="h-64">
+                                <div className="h-80">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={eventsOverTime} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                             <defs>
@@ -127,14 +98,14 @@ export default function Welcome({ auth, liveMetrics = [], statusData = [], event
                                             <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} />
                                             <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} />
                                             <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                            <Area type="monotone" dataKey="count" stroke="#6ee7b7" strokeWidth={3} fillOpacity={1} fill="url(#colorCountWelcome)" />
+                                            <Area type="monotone" dataKey="count" name="Events" stroke="#6ee7b7" strokeWidth={3} fillOpacity={1} fill="url(#colorCountWelcome)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
 
                             {/* Block-wise Weekly Status Bar Chart */}
-                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1 md:col-span-3">
+                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1">
                                 <h3 className="text-white text-lg font-bold mb-4">Block-Wise Events (Last 7 Days)</h3>
                                 <div className="h-80">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -143,14 +114,7 @@ export default function Welcome({ auth, liveMetrics = [], statusData = [], event
                                             <XAxis dataKey="name" angle={-45} textAnchor="end" tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} height={60} />
                                             <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} />
                                             <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                            <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                            <Bar dataKey="today_synced" name="Today Synced" stackId="today" fill="#34d399" />
-                                            <Bar dataKey="today_pending" name="Today Pending" stackId="today" fill="#fbbf24" />
-                                            <Bar dataKey="today_failed" name="Today Failed" stackId="today" fill="#f87171" radius={[4, 4, 0, 0]} />
-                                            
-                                            <Bar dataKey="week_synced" name="Week Synced" stackId="week" fill="#10b981" />
-                                            <Bar dataKey="week_pending" name="Week Pending" stackId="week" fill="#d97706" />
-                                            <Bar dataKey="week_failed" name="Week Failed" stackId="week" fill="#e11d48" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="total" name="Total Events" fill="#10b981" radius={[4, 4, 0, 0]} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>

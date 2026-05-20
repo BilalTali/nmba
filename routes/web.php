@@ -6,34 +6,17 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    // Grouped sync statuses
-    $counts = \App\Models\Event::selectRaw('sync_status, COUNT(*) as total')
-        ->groupBy('sync_status')
-        ->pluck('total', 'sync_status');
-        
-    $totalSynced = (int) $counts->get('synced', 0);
-    $totalPending = (int) $counts->get('pending', 0);
-    $totalFailed = (int) $counts->get('failed_permanently', 0);
-    
-    // Synced today
-    $syncedToday = \App\Models\Event::where('sync_status', 'synced')
-        ->whereDate('updated_at', today())
-        ->count();
+    $totalEvents = \App\Models\Event::count();
+    $uploadedToday = \App\Models\Event::whereDate('created_at', today())->count();
+    $uploadedThisWeek = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())->count();
+    $blocksActive = \App\Models\Event::distinct('block_id')->count('block_id');
 
     $liveMetrics = [
-        ['label' => 'Total Events', 'value' => number_format(\App\Models\Event::count())],
-        ['label' => 'Total Synced', 'value' => number_format($totalSynced)],
-        ['label' => 'Synced Today', 'value' => number_format($syncedToday)],
-        ['label' => 'Pending / Syncing / Failed', 'value' => number_format($totalPending + $totalFailed + (int) $counts->get('syncing', 0))],
+        ['label' => 'Total Events Uploaded', 'value' => number_format($totalEvents)],
+        ['label' => 'Uploaded Today', 'value' => number_format($uploadedToday)],
+        ['label' => 'Uploaded This Week', 'value' => number_format($uploadedThisWeek)],
+        ['label' => 'Active Blocks', 'value' => number_format($blocksActive)],
     ];
-
-    // Chart Data: Status Pie Chart
-    $statusData = array_values(array_filter([
-        ['name' => 'Synced', 'value' => $totalSynced, 'fill' => '#10b981'],
-        ['name' => 'Pending', 'value' => $totalPending, 'fill' => '#f59e0b'],
-        ['name' => 'Failed', 'value' => $totalFailed, 'fill' => '#f43f5e'],
-        ['name' => 'Syncing', 'value' => (int) $counts->get('syncing', 0), 'fill' => '#3b82f6'],
-    ], fn($item) => $item['value'] > 0));
 
     // Chart Data: Events over last 7 days Area Chart
     $eventsOverTimeRaw = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
@@ -53,51 +36,35 @@ Route::get('/', function () {
         ]);
     }
 
-    // Chart Data: Block-wise Weekly Status Bar Chart
+    // Chart Data: Block-wise Weekly Status Bar Chart (Simplified to just total events)
     $blocks = \App\Models\Block::pluck('name', 'id')->toArray();
 
     $blockData = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
-        ->selectRaw('block_id, sync_status, DATE(created_at) as created_date, COUNT(*) as count')
-        ->groupBy('block_id', 'sync_status', 'created_date')
+        ->selectRaw('block_id, COUNT(*) as count')
+        ->groupBy('block_id')
         ->get();
 
     $eventsByBlock = [];
     foreach ($blocks as $id => $name) {
         $eventsByBlock[$id] = [
             'name' => $name, 
-            'today_synced' => 0, 'today_pending' => 0, 'today_failed' => 0,
-            'week_synced' => 0, 'week_pending' => 0, 'week_failed' => 0
+            'total' => 0
         ];
     }
-    
-    $todayStr = now()->format('Y-m-d');
 
     foreach ($blockData as $row) {
         $id = $row->block_id;
         if (!isset($eventsByBlock[$id])) continue;
         
-        $isToday = ($row->created_date === $todayStr);
-        $status = $row->sync_status;
-        
-        if ($status === 'synced') {
-            $eventsByBlock[$id]['week_synced'] += $row->count;
-            if ($isToday) $eventsByBlock[$id]['today_synced'] += $row->count;
-        } elseif ($status === 'pending' || $status === 'syncing') {
-            $eventsByBlock[$id]['week_pending'] += $row->count;
-            if ($isToday) $eventsByBlock[$id]['today_pending'] += $row->count;
-        } else {
-            $eventsByBlock[$id]['week_failed'] += $row->count;
-            if ($isToday) $eventsByBlock[$id]['today_failed'] += $row->count;
-        }
+        $eventsByBlock[$id]['total'] += $row->count;
     }
     
-    $eventsByBlock = array_values(array_filter($eventsByBlock, fn($b) => $b['week_synced'] > 0 || $b['week_pending'] > 0 || $b['week_failed'] > 0));
-    usort($eventsByBlock, fn($a, $b) => ($b['week_synced'] + $b['week_pending'] + $b['week_failed']) - ($a['week_synced'] + $a['week_pending'] + $a['week_failed']));
+    $eventsByBlock = array_values(array_filter($eventsByBlock, fn($b) => $b['total'] > 0));
+    usort($eventsByBlock, fn($a, $b) => $b['total'] - $a['total']);
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'liveMetrics' => $liveMetrics,
-        'statusData' => $statusData,
         'eventsOverTime' => $eventsOverTime,
         'eventsByBlock' => $eventsByBlock
     ]);
