@@ -726,12 +726,55 @@ class EventController extends Controller
                 $diskUsage = 100 - (($diskFree / $diskTotal) * 100);
                 $latency = 0.12 + (rand(0, 100) / 800.0);
                 
-                // 98% uptime profile (offline on specific slots to demonstrate different states)
+                // Design a realistic outage-and-recovery queue pattern
+                // We have $i from 288 down to 0, representing 288 5-minute intervals (24 hours ago to now).
                 $isOnline = true;
-                if ($i % 80 === 0) {
-                    $isOnline = false; // Outage block
-                } elseif ($i % 45 === 0) {
-                    $isOnline = (rand(0, 1) === 1); // Degraded block
+                $pending = 0;
+                $latency = 0.15 + (rand(0, 50) / 1000.0); // 150-200ms normal latency
+
+                // 288 intervals of 5 minutes:
+                // - i from 288 down to 220 (24h ago to ~18h ago): Online. pending = 0
+                if ($i >= 220) {
+                    $isOnline = true;
+                    $pending = 0;
+                }
+                // - i from 219 down to 180 (~18h ago to ~15h ago): Outage! Builds up from 0 to 12.
+                elseif ($i >= 180) {
+                    $isOnline = false;
+                    $latency = 5.0 + (rand(0, 100) / 100.0); // 5-6s timeout latency
+                    $pending = (int) round((219 - $i) * (12 / 39));
+                }
+                // - i from 179 down to 175: Online! Backlog drains down from 12 to 0.
+                elseif ($i >= 175) {
+                    $isOnline = true;
+                    $pending = (int) round(($i - 175) * (12 / 4));
+                }
+                // - i from 174 down to 120 (~14.5h ago to 10h ago): Online, stable at 0.
+                elseif ($i >= 120) {
+                    $isOnline = true;
+                    $pending = 0;
+                }
+                // - i from 119 down to 70 (~10h ago to ~6h ago): Outage! Builds up from 0 to 20.
+                elseif ($i >= 70) {
+                    $isOnline = false;
+                    $latency = 5.0 + (rand(0, 100) / 100.0);
+                    $pending = (int) round((119 - $i) * (20 / 49));
+                }
+                // - i from 69 down to 65: Online! Backlog drains down from 20 to 0.
+                elseif ($i >= 65) {
+                    $isOnline = true;
+                    $pending = (int) round(($i - 65) * (20 / 4));
+                }
+                // - i from 64 down to 20 (~5.5h ago to ~1.5h ago): Online, stable at 0.
+                elseif ($i >= 20) {
+                    $isOnline = true;
+                    $pending = 0;
+                }
+                // - i from 19 down to 0 (~1.5h ago to now): Offline! Current outage. Builds up to 7.
+                else {
+                    $isOnline = false;
+                    $latency = 5.0 + (rand(0, 100) / 100.0);
+                    $pending = (int) round((19 - $i) * (7 / 19));
                 }
 
                 \App\Models\SystemTelemetry::create([
@@ -739,7 +782,7 @@ class EventController extends Controller
                     'cpu_load'      => $load,
                     'memory_usage'  => $mem,
                     'disk_usage'    => $diskUsage,
-                    'pending_jobs'  => rand(0, 5),
+                    'pending_jobs'  => $pending,
                     'response_time' => $latency,
                     'is_online'     => $isOnline,
                 ]);

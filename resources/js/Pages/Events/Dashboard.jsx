@@ -550,7 +550,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         {[
                                             { id: 'performance', label: 'Performance' },
                                             { id: 'resources', label: 'Resources' },
-                                            { id: 'queue', label: 'Sync Queue' }
+                                            { id: 'queue', label: 'Portal Uptime & Sync Queue' }
                                         ].map(tab => (
                                             <button
                                                 key={tab.id}
@@ -569,12 +569,12 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         { label: 'CPU Load', value: `${(telemetry[telemetry.length - 1]?.cpu ?? 0.0).toFixed(2)}`, desc: 'Average index', color: 'text-indigo-600', bg: 'bg-indigo-50/50' },
                                         { label: 'Memory Usage', value: `${(telemetry[telemetry.length - 1]?.memory ?? 0).toFixed(0)} MB`, desc: 'Allocated heap', color: 'text-sky-600', bg: 'bg-sky-50/50' },
                                         { label: 'Disk Space', value: `${(telemetry[telemetry.length - 1]?.disk ?? 0).toFixed(1)}%`, desc: 'Used capacity', color: 'text-amber-600', bg: 'bg-amber-50/50' },
-                                        { label: 'Portal Latency', value: `${(telemetry[telemetry.length - 1]?.latency ?? 0)} ms`, desc: 'Probe duration', color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
+                                        { label: 'Portal Status', value: telemetry[telemetry.length - 1]?.is_online ? 'ONLINE' : 'OFFLINE', desc: 'nashamuktjk.org', color: telemetry[telemetry.length - 1]?.is_online ? 'text-emerald-600' : 'text-rose-600 font-extrabold', bg: telemetry[telemetry.length - 1]?.is_online ? 'bg-emerald-50/50' : 'bg-rose-50/50 animate-pulse' },
                                         { label: 'Pending Jobs', value: `${(telemetry[telemetry.length - 1]?.pending ?? 0)}`, desc: 'In queue', color: 'text-rose-600', bg: 'bg-rose-50/50' }
                                     ].map((badge, i) => (
                                         <div key={i} className={`p-4 rounded-2xl border border-slate-100 ${badge.bg} transition-all`}>
                                             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{badge.label}</span>
-                                            <h4 className={`text-xl font-black ${badge.color} mt-1`}>{badge.value}</h4>
+                                            <h4 className={`text-lg font-black ${badge.color} mt-1`}>{badge.value}</h4>
                                             <p className="text-[10px] font-medium text-slate-500 mt-0.5">{badge.desc}</p>
                                         </div>
                                     ))}
@@ -584,7 +584,13 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <div className="h-72">
                                     {telemetry.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                                            <AreaChart data={telemetry} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <AreaChart 
+                                                data={telemetry.map(t => ({
+                                                    ...t,
+                                                    portal_status_num: t.is_online ? 1 : 0
+                                                }))} 
+                                                margin={{ top: 10, right: 25, left: -10, bottom: 0 }}
+                                            >
                                                 <defs>
                                                     <linearGradient id="telemetryPerfGrad" x1="0" y1="0" x2="0" y2="1">
                                                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
@@ -597,6 +603,10 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                     <linearGradient id="telemetryQueueGrad" x1="0" y1="0" x2="0" y2="1">
                                                         <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4}/>
                                                         <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                    <linearGradient id="telemetryOnlineGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                                     </linearGradient>
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -624,9 +634,52 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                                                 {activeTelemetryTab === 'queue' && (
                                                     <>
-                                                        <YAxis tickLine={false} axisLine={false} tick={{fill: '#f43f5e', fontSize: 11}} />
-                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                        <Area type="monotone" dataKey="pending" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryQueueGrad)" name="Pending Jobs" />
+                                                        <YAxis 
+                                                            yAxisId="left" 
+                                                            tickLine={false} 
+                                                            axisLine={false} 
+                                                            tick={{fill: '#f43f5e', fontSize: 11}} 
+                                                            label={{ value: 'Pending Events (Left)', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#f43f5e', fontSize: 10, fontWeight: 'bold' } }}
+                                                        />
+                                                        <YAxis 
+                                                            yAxisId="right" 
+                                                            orientation="right" 
+                                                            domain={[0, 1]} 
+                                                            tickCount={2}
+                                                            tickFormatter={(value) => value === 1 ? 'ONLINE' : 'OFFLINE'}
+                                                            tickLine={false} 
+                                                            axisLine={false} 
+                                                            tick={{fill: '#10b981', fontSize: 10, fontWeight: 'bold'}} 
+                                                        />
+                                                        <Tooltip 
+                                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                            formatter={(value, name) => {
+                                                                if (name === 'Portal Status') {
+                                                                    return [value === 1 ? 'ONLINE (Up)' : 'OFFLINE (Down)', name];
+                                                                }
+                                                                return [value, name];
+                                                            }}
+                                                        />
+                                                        <Area 
+                                                            yAxisId="left" 
+                                                            type="monotone" 
+                                                            dataKey="pending" 
+                                                            stroke="#f43f5e" 
+                                                            strokeWidth={2.5} 
+                                                            fillOpacity={0.3} 
+                                                            fill="url(#telemetryQueueGrad)" 
+                                                            name="Pending Events" 
+                                                        />
+                                                        <Area 
+                                                            yAxisId="right" 
+                                                            type="step" 
+                                                            dataKey="portal_status_num" 
+                                                            stroke="#10b981" 
+                                                            strokeWidth={3} 
+                                                            fillOpacity={0.15} 
+                                                            fill="url(#telemetryOnlineGrad)" 
+                                                            name="Portal Status" 
+                                                        />
                                                     </>
                                                 )}
                                             </AreaChart>
