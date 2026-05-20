@@ -41,4 +41,8 @@ return [
         'password' => env('PORTAL_PASSWORD'),
     ],
 
+    'cron' => [
+        'token' => env('CRON_TOKEN'),
+    ],
+
 ];

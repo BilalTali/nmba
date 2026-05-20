@@ -729,7 +729,7 @@ class EventController extends Controller
 
         // Always trigger Web Cron loopback as well (perfect for Hostinger / shared hosting)
         try {
-            $cronToken = env('CRON_TOKEN');
+            $cronToken = config('services.cron.token');
             if ($cronToken) {
                 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                 $host = $_SERVER['HTTP_HOST'] ?? 'nmbabudgam.in';
@@ -747,7 +747,7 @@ class EventController extends Controller
                 curl_exec($ch);
                 curl_close($ch);
             } else {
-                Log::channel('sync')->warning('CRON_TOKEN not set in environment. Loopback trigger skipped.');
+                Log::channel('sync')->warning('CRON_TOKEN not set in config/services.php. Loopback trigger skipped.');
             }
         } catch (\Throwable $e) {
             Log::channel('sync')->warning('Loopback queue worker trigger failed: ' . $e->getMessage());
