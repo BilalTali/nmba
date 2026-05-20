@@ -103,16 +103,17 @@ class PortalHealthService
     }
 
     /**
-     * Activate the circuit breaker for 3 minutes and emit an alert log entry.
+     * Activate the circuit breaker for 1 minute and emit an alert log entry.
      */
     public function tripCircuitBreaker(string $reason): void
     {
         Log::channel('sync')->alert('Circuit breaker tripped — portal unreachable or structurally degraded.', [
             'reason'   => $reason,
-            'cooldown' => '3 minutes',
+            'cooldown' => '1 minute',
         ]);
 
         Cache::forget('sre_portal_is_alive');
-        Cache::put('sre_circuit_breaker_portal_down', true, now()->addMinutes(3));
+        // Place a lock in cache for 1 minute
+        Cache::put('sre_circuit_breaker_portal_down', true, now()->addMinutes(1));
     }
 }
