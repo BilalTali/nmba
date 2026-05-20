@@ -69,6 +69,7 @@ class Event extends Model
         'uploader_ip',
         'device_id',
         'synced_at',
+        'submitted_by_user_id',
     ];
 
     protected $casts = [

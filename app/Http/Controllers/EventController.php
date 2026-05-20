@@ -130,6 +130,10 @@ class EventController extends Controller
     {
         $query = Event::orderBy('event_date', 'desc');
 
+        if ($request->user() && $request->user()->role !== 'admin') {
+            $query->where('submitted_by_user_id', $request->user()->id);
+        }
+
         if ($request->filled('block_id')) {
             $query->where('block_id', $request->block_id);
         }
@@ -141,12 +145,17 @@ class EventController extends Controller
             $query->whereDate('event_date', '<=', $request->end_date);
         }
 
+        $uploadedToday = (clone $query)->whereDate('created_at', today())->count();
+        $totalUploaded = (clone $query)->count();
+
         $events = $query->paginate(20)->withQueryString();
 
         return \Inertia\Inertia::render('Events/Index', [
             'events' => $events,
             'blocks' => $this->getBlocks(),
-            'filters' => $request->only(['block_id', 'start_date', 'end_date'])
+            'filters' => $request->only(['block_id', 'start_date', 'end_date']),
+            'uploadedToday' => $uploadedToday,
+            'totalUploaded' => $totalUploaded,
         ]);
     }
 
@@ -241,6 +250,7 @@ class EventController extends Controller
                 'semantic_hash' => $semanticHash,
                 'sync_status'   => 'pending',
                 'uploader_ip'   => $request->ip(),
+                'submitted_by_user_id' => auth()->id(),
             ]));
 
             // Backfill the event_id into deduplications now that we have it
@@ -602,7 +612,11 @@ class EventController extends Controller
      */
     public function exportCsv()
     {
-        $events = Event::orderBy('event_date', 'desc')->get();
+        $query = Event::orderBy('event_date', 'desc');
+        if (auth()->user() && auth()->user()->role !== 'admin') {
+            $query->where('submitted_by_user_id', auth()->id());
+        }
+        $events = $query->get();
         $blocks = $this->getBlocks();
 
         $headers = [

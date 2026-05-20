@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {/* Left: Logo + Nav Links */}
                         <div className="flex items-center gap-8">
-                            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+                            <Link href={user.role === 'admin' ? route('dashboard') : (user.role === 'district_creator' ? route('events.index') : route('block.events.index'))} className="flex items-center gap-2.5 group shrink-0">
                                 <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center shadow-sm group-hover:bg-emerald-500 transition-colors">
                                     <span className="text-white font-black text-xs">JK</span>
                                 </div>

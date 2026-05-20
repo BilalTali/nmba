@@ -21,15 +21,37 @@ class BlockEventController extends Controller
         $this->imageService = $imageService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::where('block_id', auth()->user()->block_id)
-            ->latest()
-            ->paginate(50);
+        $userId = auth()->id();
+        $blockId = auth()->user()->block_id;
+
+        $query = Event::where(function ($q) use ($userId, $blockId) {
+            $q->where('submitted_by_user_id', $userId)
+              ->orWhere(function ($q2) use ($blockId) {
+                  $q2->whereNull('submitted_by_user_id')
+                     ->where('block_id', $blockId);
+              });
+        });
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('event_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('event_date', '<=', $request->end_date);
+        }
+
+        $uploadedToday = (clone $query)->whereDate('created_at', today())->count();
+        $totalUploaded = (clone $query)->count();
+
+        $events = $query->latest()->paginate(50)->withQueryString();
 
         return Inertia::render('Block/Events/Index', [
-            'events'     => $events,
-            'block_name' => auth()->user()->block?->name,
+            'events'        => $events,
+            'block_name'    => auth()->user()->block?->name,
+            'filters'       => $request->only(['start_date', 'end_date']),
+            'uploadedToday' => $uploadedToday,
+            'totalUploaded' => $totalUploaded,
         ]);
     }
 
