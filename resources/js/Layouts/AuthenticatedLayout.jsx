@@ -3,7 +3,7 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -11,6 +11,12 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [flashVisible, setFlashVisible] = useState(true);
+
+    useEffect(() => {
+        if (flash?.success || flash?.error) {
+            setFlashVisible(true);
+        }
+    }, [flash]);
 
     return (
         <div className="min-h-screen bg-slate-50">
