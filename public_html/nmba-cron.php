@@ -84,6 +84,7 @@ if (file_exists($lockFile)) {
     }
 }
 touch($lockFile);
+register_shutdown_function(function() use ($lockFile) { @unlink($lockFile); });
 
 try {
     // ── Bootstrap Laravel Internally ─────────────────────────────────
@@ -103,7 +104,7 @@ try {
 
     // Check if circuit breaker is active before running queue worker
     if (\Illuminate\Support\Facades\Cache::get('sre_circuit_breaker_portal_down') === true) {
-        @unlink($lockFile);
+        // @unlink($lockFile); // Handled by shutdown function
         http_response_code(200);
         header('Content-Type: text/plain');
         die('[' . date('Y-m-d H:i:s') . '] Circuit breaker active. Queue worker execution deferred.' . PHP_EOL);
@@ -122,7 +123,7 @@ try {
     file_put_contents(LOG_FILE, $logEntry, FILE_APPEND);
 
     // Release lock
-    @unlink($lockFile);
+    // @unlink($lockFile); // Handled by shutdown function
 
     // Check if there are still ready jobs in the queue
     try {
@@ -164,7 +165,7 @@ try {
     echo $outputText;
 
 } catch (\Throwable $e) {
-    @unlink($lockFile);
+    // @unlink($lockFile); // Handled by shutdown function
     http_response_code(500);
     header('Content-Type: text/plain');
     die('ERROR bootstrapping or executing queue: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString());
