@@ -198,4 +198,57 @@ class AuditRehashTest extends TestCase
             'sync_attempts'                    => 1,
         ], $overrides));
     }
+
+    /** @test */
+    public function view_audit_logs_returns_logs_when_exists(): void
+    {
+        $user = \App\Models\User::factory()->create(['role' => 'admin']);
+
+        $logPath = storage_path('audit/hash-audit-' . now()->format('Y-m-d') . '.log');
+        if (!is_dir(dirname($logPath))) {
+            mkdir(dirname($logPath), 0755, true);
+        }
+        file_put_contents($logPath, 'Fake audit report content');
+
+        $response = $this->actingAs($user)
+            ->get(route('admin.logs.audit'));
+
+        $response->assertStatus(200)
+            ->assertHeader('Content-Type', 'text/plain; charset=utf-8')
+            ->assertSee('Fake audit report content');
+
+        @unlink($logPath);
+    }
+
+    /** @test */
+    public function view_sync_logs_returns_logs_when_exists(): void
+    {
+        $user = \App\Models\User::factory()->create(['role' => 'admin']);
+
+        $logPath = storage_path('logs/sync-' . now()->format('Y-m-d') . '.log');
+        if (!is_dir(dirname($logPath))) {
+            mkdir(dirname($logPath), 0755, true);
+        }
+        file_put_contents($logPath, 'Fake sync log content');
+
+        $response = $this->actingAs($user)
+            ->get(route('admin.logs.sync'));
+
+        $response->assertStatus(200)
+            ->assertHeader('Content-Type', 'text/plain; charset=utf-8')
+            ->assertSee('Fake sync log content');
+
+        @unlink($logPath);
+    }
+
+    /** @test */
+    public function log_routes_are_protected_by_auth(): void
+    {
+        $response1 = $this->get(route('admin.logs.audit'));
+        $response1->assertRedirect(route('login'));
+
+        $response2 = $this->get(route('admin.logs.sync'));
+        $response2->assertRedirect(route('login'));
+    }
 }
+
