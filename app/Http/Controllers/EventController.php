@@ -58,6 +58,28 @@ class EventController extends Controller
             'transient'   => (int) $cachedMetrics['transient'],
         ];
 
+        // Self-healing Watchdog: If Hostinger cron fails, visiting the dashboard will silently wake up the worker.
+        if (!Cache::has('sre_dashboard_cron_watchdog') && !Cache::get('sre_circuit_breaker_portal_down', false) && ($metrics['pending'] > 0)) {
+            Cache::put('sre_dashboard_cron_watchdog', true, 10); // Throttle to max 1 trigger per 10 seconds
+            try {
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'nmbabudgam.in';
+                $cronUrl = $protocol . '://' . $host . '/nmba-cron.php?token=' . urlencode(env('CRON_TOKEN', ''));
+                
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $cronUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+                curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (\Throwable $e) {
+                // Ignore silent watchdog errors
+            }
+        }
+
         // Enqueue any pending events that slipped through — the persistent queue daemon will pick them up.
         if (!$autoSyncPaused) {
             $this->ensurePendingEventsAreQueued();

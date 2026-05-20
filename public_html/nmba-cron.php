@@ -111,7 +111,7 @@ try {
 
     // Capture output of the Artisan command run
     $output = new \Symfony\Component\Console\Output\BufferedOutput();
-    $input = new \Symfony\Component\Console\Input\StringInput('queue:work database --max-jobs=2 --tries=10 --timeout=110 --stop-when-empty');
+    $input = new \Symfony\Component\Console\Input\StringInput('queue:work database --max-jobs=20 --tries=10 --timeout=110 --stop-when-empty');
 
     // Run the queue worker command internally in the current PHP process SAPI context
     $exitCode = $kernel->handle($input, $output);
