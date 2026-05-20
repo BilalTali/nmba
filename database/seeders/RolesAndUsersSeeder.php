@@ -17,7 +17,7 @@ class RolesAndUsersSeeder extends Seeder
             [
                 'name' => 'District Admin',
                 'role' => 'admin',
-                'password' => 'password', // will be hashed via the User model mutator
+                'password' => 'Welcome@123', // will be hashed via the User model mutator
             ]
         );
 
@@ -27,7 +27,7 @@ class RolesAndUsersSeeder extends Seeder
                 'name' => 'Event Creator',
                 'role' => 'block_worker',
                 'block_id' => 14, // Assigning to 'Badgam' block for testing
-                'password' => 'password',
+                'password' => 'Welcome@123',
             ]
         );
     }
