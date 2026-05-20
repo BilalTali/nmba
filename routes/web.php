@@ -103,18 +103,20 @@ Route::get('/', function () {
     ]);
 });
 
+Route::middleware(['auth', 'district_access'])->group(function () {
+    Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+    Route::get('/events/create', [\App\Http\Controllers\EventController::class, 'create'])->name('events.create');
+    Route::post('/events', [\App\Http\Controllers\EventController::class, 'store'])->name('events.store');
+    Route::get('/events/export', [\App\Http\Controllers\EventController::class, 'exportCsv'])->name('events.export');
+});
+
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\EventController::class, 'dashboard'])->name('dashboard');
     Route::resource('users', \App\Http\Controllers\UserController::class);
 
-    Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/events/create', [\App\Http\Controllers\EventController::class, 'create'])->name('events.create');
-    Route::post('/events', [\App\Http\Controllers\EventController::class, 'store'])->name('events.store');
-    Route::get('/events/export', [\App\Http\Controllers\EventController::class, 'exportCsv'])->name('events.export');
     
     // Admin routes — rate limited to prevent self-inflicted DoS
     Route::post('/events/{event}/toggle-sync', [\App\Http\Controllers\EventController::class, 'toggleSyncStatus'])

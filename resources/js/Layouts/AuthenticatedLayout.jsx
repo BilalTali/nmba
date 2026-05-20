@@ -31,14 +31,21 @@ export default function AuthenticatedLayout({ header, children }) {
                             </Link>
 
                             <div className="hidden sm:flex items-center gap-1">
-                                {user.role === 'admin' ? (
+                                {user.role === 'admin' && (
                                     <>
                                         <NavLink href={route('dashboard')} active={route().current('dashboard')} className="text-sm font-semibold">Dashboard</NavLink>
                                         <NavLink href={route('events.index')} active={route().current('events.index')} className="text-sm font-semibold">View Events</NavLink>
                                         <NavLink href={route('events.create')} active={route().current('events.create')} className="text-sm font-semibold">Create Event</NavLink>
                                         <NavLink href={route('users.index')} active={route().current('users.index')} className="text-sm font-semibold">Manage Users</NavLink>
                                     </>
-                                ) : (
+                                )}
+                                {user.role === 'district_creator' && (
+                                    <>
+                                        <NavLink href={route('events.index')} active={route().current('events.index')} className="text-sm font-semibold">View Events</NavLink>
+                                        <NavLink href={route('events.create')} active={route().current('events.create')} className="text-sm font-semibold">Create Event</NavLink>
+                                    </>
+                                )}
+                                {user.role === 'block_worker' && (
                                     <>
                                         <NavLink href={route('block.events.index')} active={route().current('block.events.index')} className="text-sm font-semibold">View Events</NavLink>
                                         <NavLink href={route('block.events.create')} active={route().current('block.events.create')} className="text-sm font-semibold">Create Event</NavLink>
@@ -111,14 +118,21 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* Mobile Navigation Drawer */}
                 <div className={`sm:hidden transition-all duration-200 ease-in-out overflow-hidden ${showingNavigationDropdown ? 'max-h-96 border-t border-slate-100' : 'max-h-0'}`}>
                     <div className="px-4 py-3 space-y-1">
-                        {user.role === 'admin' ? (
+                        {user.role === 'admin' && (
                             <>
                                 <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>Dashboard</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.index')} active={route().current('events.index')}>View Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.create')} active={route().current('events.create')}>Create Event</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('users.index')} active={route().current('users.index')}>Manage Users</ResponsiveNavLink>
                             </>
-                        ) : (
+                        )}
+                        {user.role === 'district_creator' && (
+                            <>
+                                <ResponsiveNavLink href={route('events.index')} active={route().current('events.index')}>View Events</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('events.create')} active={route().current('events.create')}>Create Event</ResponsiveNavLink>
+                            </>
+                        )}
+                        {user.role === 'block_worker' && (
                             <>
                                 <ResponsiveNavLink href={route('block.events.index')} active={route().current('block.events.index')}>View Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('block.events.create')} active={route().current('block.events.create')}>Create Event</ResponsiveNavLink>

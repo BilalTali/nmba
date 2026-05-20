@@ -35,9 +35,13 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        return $user->isAdmin()
-            ? redirect()->intended(route('dashboard', absolute: false))
-            : redirect()->intended(route('block.events.index', absolute: false));
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        } elseif ($user->isCreator()) {
+            return redirect()->intended(route('events.index', absolute: false));
+        } else {
+            return redirect()->intended(route('block.events.index', absolute: false));
+        }
     }
 
     /**

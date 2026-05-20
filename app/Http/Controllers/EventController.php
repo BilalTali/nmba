@@ -305,6 +305,9 @@ class EventController extends Controller
 
         $blockName      = \App\Models\Block::find($validated['block_id'])?->name ?? 'selected block';
         $successMessage = "Event logged successfully! <br><span class='text-emerald-900 font-bold'>Recorded for Jurisdiction: {$blockName}</span>";
+        if ($request->user() && $request->user()->isCreator()) {
+            return redirect()->route('events.index')->with('success', $successMessage);
+        }
 
         return redirect()->route('dashboard')->with('success', $successMessage);
     }

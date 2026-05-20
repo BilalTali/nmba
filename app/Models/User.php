@@ -75,4 +75,9 @@ class User extends Authenticatable
     {
         return $this->role === 'block_worker';
     }
+
+    public function isCreator(): bool
+    {
+        return $this->role === 'district_creator';
+    }
 }

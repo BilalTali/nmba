@@ -25,8 +25,8 @@ class RolesAndUsersSeeder extends Seeder
             ['email' => 'creator@district.com'],
             [
                 'name' => 'Event Creator',
-                'role' => 'block_worker',
-                'block_id' => 14, // Assigning to 'Badgam' block for testing
+                'role' => 'district_creator',
+                'block_id' => null,
                 'password' => 'Welcome@123',
             ]
         );
