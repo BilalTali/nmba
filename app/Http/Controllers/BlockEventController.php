@@ -125,6 +125,7 @@ class BlockEventController extends Controller
                     'unique_hash'          => $submissionId,
                     'submission_id'        => $submissionId,
                     'semantic_hash'        => $semanticHash,
+                    'uploader_ip'          => $request->ip(),
                 ]
             ));
 

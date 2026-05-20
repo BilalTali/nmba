@@ -84,7 +84,7 @@ class DeviceIdTrackingTest extends TestCase
 
         $event = Event::first();
         $this->assertEquals($deviceId, $event->device_id);
-        $this->assertNull($event->uploader_ip, 'Expected uploader_ip to be left null / not recorded');
+        $this->assertEquals('127.0.0.1', $event->uploader_ip);
     }
 
     /** @test */
@@ -104,7 +104,7 @@ class DeviceIdTrackingTest extends TestCase
 
         $event = Event::first();
         $this->assertEquals($deviceId, $event->device_id);
-        $this->assertNull($event->uploader_ip, 'Expected uploader_ip to be left null / not recorded');
+        $this->assertEquals('127.0.0.1', $event->uploader_ip);
     }
 
     /** @test */
@@ -120,6 +120,6 @@ class DeviceIdTrackingTest extends TestCase
 
         $event = Event::first();
         $this->assertNull($event->device_id);
-        $this->assertNull($event->uploader_ip);
+        $this->assertEquals('127.0.0.1', $event->uploader_ip);
     }
 }

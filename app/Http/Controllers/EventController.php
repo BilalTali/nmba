@@ -240,6 +240,7 @@ class EventController extends Controller
                 'submission_id' => $submissionId,
                 'semantic_hash' => $semanticHash,
                 'sync_status'   => 'pending',
+                'uploader_ip'   => $request->ip(),
             ]));
 
             // Backfill the event_id into deduplications now that we have it
@@ -613,8 +614,8 @@ class EventController extends Controller
                     $event->event_coordinator_name,
                     $event->event_coordinator_contact_number,
                     $event->event_coordinator_desig,
-                    $event->device_id ?? 'Unknown',
-                    $event->uploader_ip ?? 'N/A',
+                    $event->device_id ?? 'Legacy',
+                    $event->uploader_ip ?? 'Legacy',
                     $event->sync_status,
                     $event->synced_at ? $event->synced_at->toDateTimeString() : '',
                     $event->created_at ? $event->created_at->toDateTimeString() : '',
