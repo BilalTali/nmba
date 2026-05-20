@@ -5,7 +5,7 @@
  *
  * This endpoint is called by the Hostinger hPanel Cron Job manager
  * every 5 minutes via an HTTP GET request. It processes up to 10
- * pending queue jobs per invocation using the database driver.
+ * pending queue jobs per invocation using the database driver in-memory.
  *
  * TOKEN SECURITY:
  *   The CRON_TOKEN value is loaded exclusively from the Laravel .env
@@ -30,7 +30,6 @@
 
 // ── Load CRON_TOKEN securely from the Laravel .env file ─────────
 define('APP_ROOT', dirname(__DIR__) . '/nmbaagent');
-define('PHP_BIN',  '/usr/bin/php');
 define('LOG_FILE', APP_ROOT . '/storage/logs/cron-worker.log');
 
 /**
@@ -75,12 +74,6 @@ if (!hash_equals($cronToken, $requestToken)) {
     die('Forbidden');
 }
 
-// ── Sanity check: ensure artisan actually exists at APP_ROOT ─────
-if (!file_exists(APP_ROOT . '/artisan')) {
-    http_response_code(500);
-    die('ERROR: artisan not found at: ' . APP_ROOT);
-}
-
 // ── Guard: prevent overlapping cron runs using a lockfile ────────
 $lockFile = sys_get_temp_dir() . '/nmba_queue_worker.lock';
 if (file_exists($lockFile)) {
@@ -92,20 +85,45 @@ if (file_exists($lockFile)) {
 }
 touch($lockFile);
 
-// ── Run queue:work with --max-jobs=10 for burst throughput ───────
-// --max-jobs=10 processes up to 10 jobs then exits cleanly.
-// This prevents PHP-FPM memory leaks from long-lived worker processes
-// while still handling burst loads (see DEPLOYMENT.md for throughput math).
-$command = PHP_BIN . ' ' . APP_ROOT . '/artisan queue:work database --max-jobs=10 --tries=10 --timeout=110 >> ' . LOG_FILE . ' 2>&1';
-$output  = shell_exec($command);
+try {
+    // ── Bootstrap Laravel Internally ─────────────────────────────────
+    if (!file_exists(APP_ROOT . '/vendor/autoload.php')) {
+        throw new \Exception('Composer autoload not found. Run composer install first.');
+    }
+    require APP_ROOT . '/vendor/autoload.php';
 
-// Release the lockfile after execution completes
-@unlink($lockFile);
+    if (!file_exists(APP_ROOT . '/bootstrap/app.php')) {
+        throw new \Exception('Laravel bootstrap app.php not found.');
+    }
+    $app = require_once APP_ROOT . '/bootstrap/app.php';
 
-// ── Respond with timestamp confirmation ──────────────────────────
-http_response_code(200);
-header('Content-Type: text/plain');
-echo '[' . date('Y-m-d H:i:s') . '] Queue worker cycle completed (max-jobs=10).' . PHP_EOL;
-if ($output) {
-    echo $output;
+    /** @var \Illuminate\Contracts\Console\Kernel $kernel */
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+    // Capture output of the Artisan command run
+    $output = new \Symfony\Component\Console\Output\BufferedOutput();
+    $input = new \Symfony\Component\Console\Input\StringInput('queue:work database --max-jobs=10 --tries=10 --timeout=110');
+
+    // Run the queue worker command internally in the current PHP process SAPI context
+    $exitCode = $kernel->handle($input, $output);
+    $outputText = $output->fetch();
+
+    // Log the output to cron-worker.log
+    $logEntry = '[' . date('Y-m-d H:i:s') . '] Exit Code: ' . $exitCode . PHP_EOL . $outputText . PHP_EOL;
+    file_put_contents(LOG_FILE, $logEntry, FILE_APPEND);
+
+    // Release lock
+    @unlink($lockFile);
+
+    // Respond with confirmation
+    http_response_code(200);
+    header('Content-Type: text/plain');
+    echo '[' . date('Y-m-d H:i:s') . '] Queue worker cycle completed (max-jobs=10).' . PHP_EOL;
+    echo $outputText;
+
+} catch (\Throwable $e) {
+    @unlink($lockFile);
+    http_response_code(500);
+    header('Content-Type: text/plain');
+    die('ERROR bootstrapping or executing queue: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString());
 }
