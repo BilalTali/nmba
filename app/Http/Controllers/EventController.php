@@ -381,6 +381,39 @@ class EventController extends Controller
     }
 
     /**
+     * Resets all failed or quarantined events back to pending status so they can be re-attempted.
+     */
+    public function resetFailedSyncs(\Illuminate\Http\Request $request): RedirectResponse
+    {
+        try {
+            // Reset failed_permanently, failed, and manually locked out (sync_attempts = -1) events
+            $updatedCount = Event::whereIn('sync_status', ['failed_permanently', 'failed'])
+                ->orWhere('sync_attempts', -1)
+                ->update([
+                    'sync_status'     => 'pending',
+                    'sync_attempts'   => 0,
+                    'last_attempt_at' => null,
+                    'last_error_log'  => null,
+                ]);
+
+            // Clear the circuit breaker so synchronization can run immediately
+            Cache::forget('sre_circuit_breaker_portal_down');
+
+            // Force dashboard metrics to refresh
+            Cache::forget('dashboard_metrics_counts');
+
+            // Automatically queue up the reset events and run the worker in background
+            $this->runQueueWorkerInBackground();
+
+            return redirect()->route('dashboard')
+                ->with('success', "Successfully reset {$updatedCount} failed or quarantined events back to pending. The background sync daemon will process them shortly.");
+        } catch (Exception $e) {
+            return redirect()->route('dashboard')
+                ->withErrors(['error' => 'Resetting failed events encountered an error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Actively probe the portal's live health status, reset the circuit breaker if online,
      * and auto-trigger a background queue worker to sync any pending events immediately.
      */

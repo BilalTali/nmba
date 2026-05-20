@@ -63,6 +63,22 @@ class SyncEventJob implements ShouldQueue
         // Always refresh from DB to get the latest state — model may be stale from dispatch time.
         $this->event->refresh();
 
+        // Pre-flight health probe check: Check if the target portal is unreachable/offline
+        try {
+            $healthService = app(\App\Services\PortalHealthService::class);
+            if (!$healthService->isAlive()) {
+                Log::channel('sync')->info('Deferred Sync: Target portal is offline or circuit breaker is active. Releasing back to queue without updating attempt count.', [
+                    'event_id' => $this->event->id,
+                ]);
+                $this->release(300); // retry in 5 minutes (300 seconds)
+                return;
+            }
+        } catch (Exception $e) {
+            Log::channel('sync')->warning('Pre-flight portal health check failed in SyncEventJob.', [
+                'error' => $e->getMessage()
+            ]);
+        }
+
         // Infinite retry loop for server downtime: reset counter at 9 to prevent permanent failure
         if ($this->event->sync_attempts >= 9) {
             $this->event->update(['sync_attempts' => 0]);

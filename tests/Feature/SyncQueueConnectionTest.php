@@ -156,4 +156,145 @@ class SyncQueueConnectionTest extends TestCase
 
         \Illuminate\Support\Carbon::setTestNow(null);
     }
+
+    /** @test */
+    public function job_releases_itself_when_portal_is_offline(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $event = Event::create([
+            'event_name'                       => 'Test Event',
+            'event_date'                       => '2026-05-01',
+            'event_venue'                      => 'Venue',
+            'event_category'                   => ['Awareness'],
+            'district_name'                    => 'Budgam',
+            'block_id'                         => $block->id,
+            'actual_attendance'                => 10,
+            'attendance_range'                 => '10-50',
+            'target_audience'                  => ['Students'],
+            'age_group'                        => ['18-25'],
+            'event_coordinator_name'           => 'Coordinator',
+            'event_coordinator_contact_number' => '9876543210',
+            'event_coordinator_desig'          => 'Teacher',
+            'photo_paths'                      => [],
+            'unique_hash'                      => md5(uniqid('', true)),
+            'semantic_hash'                    => md5('semantic-test'),
+            'submission_id'                    => md5(uniqid('', true)),
+            'sync_status'                      => 'pending',
+            'sync_attempts'                    => 0,
+        ]);
+
+        // Mock the PortalHealthService so it returns false (unreachable portal)
+        $healthMock = $this->mock(\App\Services\PortalHealthService::class);
+        $healthMock->shouldReceive('isAlive')->andReturn(false);
+
+        // We mock the job class but only mock the release method
+        $job = $this->getMockBuilder(SyncEventJob::class)
+            ->setConstructorArgs([$event])
+            ->onlyMethods(['release'])
+            ->getMock();
+
+        // Expect the release method to be called (with a 300 second delay)
+        $job->expects($this->once())
+            ->method('release')
+            ->with(300);
+
+        // Run the job handler via Laravel Container injection
+        $this->app->call([$job, 'handle']);
+
+        // Assert event status remains 'pending' and sync_attempts remains 0
+        $event->refresh();
+        $this->assertEquals('pending', $event->sync_status);
+        $this->assertEquals(0, $event->sync_attempts);
+    }
+
+    /** @test */
+    public function admin_can_reset_all_failed_events_to_pending(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $admin = \App\Models\User::factory()->create(['role' => 'admin', 'block_id' => $block->id]);
+
+        // Create a failed event
+        $failedEvent = Event::create([
+            'event_name'                       => 'Failed Event',
+            'event_date'                       => '2026-05-01',
+            'event_venue'                      => 'Venue',
+            'event_category'                   => ['Awareness'],
+            'district_name'                    => 'Budgam',
+            'block_id'                         => $block->id,
+            'actual_attendance'                => 10,
+            'attendance_range'                 => '10-50',
+            'target_audience'                  => ['Students'],
+            'age_group'                        => ['18-25'],
+            'event_coordinator_name'           => 'Coordinator',
+            'event_coordinator_contact_number' => '9876543210',
+            'event_coordinator_desig'          => 'Teacher',
+            'photo_paths'                      => [],
+            'unique_hash'                      => md5(uniqid('', true)),
+            'semantic_hash'                    => md5('semantic-failed'),
+            'submission_id'                    => md5(uniqid('', true)),
+            'sync_status'                      => 'failed_permanently',
+            'sync_attempts'                    => 10,
+        ]);
+
+        // Create a manually locked out event (attempts = -1)
+        $lockedEvent = Event::create([
+            'event_name'                       => 'Locked Event',
+            'event_date'                       => '2026-05-01',
+            'event_venue'                      => 'Venue',
+            'event_category'                   => ['Awareness'],
+            'district_name'                    => 'Budgam',
+            'block_id'                         => $block->id,
+            'actual_attendance'                => 10,
+            'attendance_range'                 => '10-50',
+            'target_audience'                  => ['Students'],
+            'age_group'                        => ['18-25'],
+            'event_coordinator_name'           => 'Coordinator',
+            'event_coordinator_contact_number' => '9876543210',
+            'event_coordinator_desig'          => 'Teacher',
+            'photo_paths'                      => [],
+            'unique_hash'                      => md5(uniqid('', true)),
+            'semantic_hash'                    => md5('semantic-locked'),
+            'submission_id'                    => md5(uniqid('', true)),
+            'sync_status'                      => 'pending',
+            'sync_attempts'                    => -1,
+        ]);
+
+        // Set circuit breaker in cache
+        \Illuminate\Support\Facades\Cache::put('sre_circuit_breaker_portal_down', true, 600);
+
+        // Make the reset call
+        $response = $this->actingAs($admin)->post(route('events.reset-failed'));
+
+        // Assert redirect and success flash message
+        $response->assertStatus(302);
+        $response->assertRedirect(route('dashboard'));
+        $this->assertEquals(
+            'Successfully reset 2 failed or quarantined events back to pending. The background sync daemon will process them shortly.',
+            session('success')
+        );
+
+        // Assert database updates
+        $failedEvent->refresh();
+        $this->assertEquals('pending', $failedEvent->sync_status);
+        $this->assertEquals(0, $failedEvent->sync_attempts);
+
+        $lockedEvent->refresh();
+        $this->assertEquals('pending', $lockedEvent->sync_status);
+        $this->assertEquals(0, $lockedEvent->sync_attempts);
+
+        // Assert circuit breaker cache cleared
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('sre_circuit_breaker_portal_down'));
+    }
 }

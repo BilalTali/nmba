@@ -184,6 +184,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
     const retrySync = (eventId) => post(route('events.retrySync', eventId));
     const toggleAutoSync = () => post(route('events.toggleAutoSync'));
     const forceSyncQueue = () => post(route('events.force-sync'));
+    const resetFailedSyncs = () => post(route('events.reset-failed'));
 
     const filteredEvents = recentEvents.filter(event => {
         if (filterDate && !event.event_date.startsWith(filterDate)) return false;
@@ -223,6 +224,16 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     Force Sync
+                                </button>
+                                <button
+                                    onClick={resetFailedSyncs}
+                                    disabled={processing}
+                                    className="px-5 py-2.5 bg-amber-600 text-white font-bold rounded-xl hover:bg-amber-500 shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Reset Failed Syncs
                                 </button>
                                 <a
                                     href={route('events.export')}

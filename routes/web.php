@@ -67,6 +67,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->middleware('throttle:10,1')->name('events.toggleAutoSync');
     Route::post('/events/force-sync', [\App\Http\Controllers\EventController::class, 'forceSync'])
         ->name('events.force-sync');
+    Route::post('/events/reset-failed', [\App\Http\Controllers\EventController::class, 'resetFailedSyncs'])
+        ->name('events.reset-failed');
     Route::post('/events/purge-synced-media', [\App\Http\Controllers\EventController::class, 'purgeSyncedMedia'])
         ->middleware('throttle:30,1')->name('events.purge-media');
     // Polled every 15s — allow max 10/min per user (2x safety margin)
