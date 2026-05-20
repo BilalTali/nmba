@@ -229,14 +229,18 @@ class AuditRehashTest extends TestCase
         if (!is_dir(dirname($logPath))) {
             mkdir(dirname($logPath), 0755, true);
         }
-        file_put_contents($logPath, 'Fake sync log content');
+        // Write a properly-formatted Laravel log line so the controller's regex parses it.
+        // Plain text is silently skipped; only lines matching [YYYY-MM-DD HH:MM:SS] env.LEVEL: ...
+        // are included in the Inertia props passed to the view.
+        $timestamp = now()->format('Y-m-d H:i:s');
+        file_put_contents($logPath, "[{$timestamp}] testing.INFO: FakeSyncLogSentinel {}");
 
         $response = $this->actingAs($user)
             ->get(route('admin.logs.sync'));
 
         $response->assertStatus(200)
             ->assertHeader('Content-Type', 'text/html; charset=utf-8')
-            ->assertSee('Fake sync log content');
+            ->assertSee('FakeSyncLogSentinel');
 
         @unlink($logPath);
     }

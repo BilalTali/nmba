@@ -813,6 +813,26 @@ class EventController extends Controller
         } catch (\Throwable $e) {
             Log::channel('sync')->warning('Loopback queue worker trigger failed: ' . $e->getMessage());
         }
+
+        // Final Bulletproof Fallback: Internal Artisan Call (Runs after response is sent)
+        // Limits to 5 jobs to avoid holding the PHP process for too long in environments 
+        // that don't fully release the HTTP connection until PHP exits.
+        register_shutdown_function(function () {
+            try {
+                if (\Illuminate\Support\Facades\Cache::get('sre_circuit_breaker_portal_down') !== true) {
+                    \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                        'connection' => 'database',
+                        '--max-jobs' => 5,
+                        '--stop-when-empty' => true,
+                        '--timeout' => 110,
+                        '--quiet' => true,
+                    ]);
+                    // Only log if jobs were actually processed to avoid log spam, though --quiet handles CLI output
+                }
+            } catch (\Throwable $e) {
+                // Silently catch so it doesn't crash the shutdown sequence
+            }
+        });
     }
 
     /**
