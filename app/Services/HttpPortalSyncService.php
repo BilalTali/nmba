@@ -138,7 +138,11 @@ class HttpPortalSyncService implements PortalSyncInterface
                 Log::channel('sync')->info('Reusing active portal session.');
             }
 
-            return $this->dispatchPayload($client, $event, $submissionToken);
+            $success = $this->dispatchPayload($client, $event, $submissionToken);
+            if ($success) {
+                $this->saveCookieJar($cookieJar);
+            }
+            return $success;
         } finally {
             unset($client, $cookieJar);
         }
