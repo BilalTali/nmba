@@ -326,6 +326,37 @@ class EventController extends Controller
      * Manually triggers the queue worker to process pending sync jobs from the UI.
      * Extremely useful for local XAMPP environments without Supervisor daemons.
      */
+    /**
+     * Parse the jobs table to find all event IDs that are already queued.
+     */
+    private function getQueuedEventIds(): array
+    {
+        if (config('queue.default') !== 'database') {
+            return [];
+        }
+
+        $queuedIds = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('jobs')) {
+                $payloads = DB::table('jobs')->pluck('payload');
+                foreach ($payloads as $payload) {
+                    $data = json_decode($payload, true);
+                    $cmd = $data['data']['command'] ?? '';
+                    if (preg_match('/"id";i:(\d+);/', $cmd, $m)) {
+                        $queuedIds[(int) $m[1]] = true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::channel('sync')->warning('Could not retrieve queued event IDs: ' . $e->getMessage());
+        }
+        return $queuedIds;
+    }
+
+    /**
+     * Manually triggers the queue worker to process pending sync jobs from the UI.
+     * Extremely useful for local XAMPP environments without Supervisor daemons.
+     */
     public function forceSync(\Illuminate\Http\Request $request): RedirectResponse
     {
         $key = 'force-sync-limit:' . ($request->user()?->id ?? $request->ip());
@@ -353,16 +384,21 @@ class EventController extends Controller
             // Clear the circuit breaker so sync attempts can proceed immediately.
             Cache::forget('sre_circuit_breaker_portal_down');
 
+            // Retrieve currently queued event IDs to avoid duplicate dispatching
+            $queuedIds = $this->getQueuedEventIds();
+
             // Unlock manual override and re-dispatch all pending events.
             // Uses chunk() to safely handle large datasets without memory exhaustion.
             Event::where('sync_status', 'pending')
-                ->chunk(100, function ($pendingEvents) {
+                ->chunk(100, function ($pendingEvents) use ($queuedIds) {
                     foreach ($pendingEvents as $event) {
                         Cache::forget("manual_override_{$event->id}");
                         Cache::forget("sre_sync_dispatch_lock_{$event->id}");
-                        // Establish fresh initial dispatch lock for 1 hour
-                        Cache::put("sre_sync_dispatch_lock_{$event->id}", true, 3600);
-                        dispatch(new SyncEventJob($event));
+                        
+                        // ONLY dispatch if the job is not already in the jobs table
+                        if (!isset($queuedIds[$event->id])) {
+                            dispatch(new SyncEventJob($event));
+                        }
                     }
                 });
 
@@ -645,11 +681,15 @@ class EventController extends Controller
             ->where('sync_attempts', '!=', -1)
             ->get();
 
+        if ($pendingEvents->isEmpty()) {
+            return;
+        }
+
+        // Retrieve currently queued event IDs to avoid duplicate dispatching
+        $queuedIds = $this->getQueuedEventIds();
+
         foreach ($pendingEvents as $event) {
-            $cacheKey = "sre_sync_dispatch_lock_{$event->id}";
-            if (!Cache::has($cacheKey)) {
-                // Lock dispatch for 1 hour (3600 seconds) to prevent queue flooding during outages
-                Cache::put($cacheKey, true, 3600);
+            if (!isset($queuedIds[$event->id])) {
                 dispatch(new SyncEventJob($event));
             }
         }
