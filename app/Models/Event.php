@@ -65,6 +65,8 @@ class Event extends Model
         'sync_attempts',
         'last_attempt_at',
         'last_error_log',
+        'uploader_ip',
+        'synced_at',
     ];
 
     protected $casts = [
@@ -78,6 +80,7 @@ class Event extends Model
         'district_id'        => 'integer',
         'sync_attempts'      => 'integer',
         'last_attempt_at'    => 'datetime',
+        'synced_at'          => 'datetime',
         'hash_was_corrupted' => 'boolean',
     ];
 
@@ -218,6 +221,7 @@ class Event extends Model
             'sync_status'    => 'synced',
             'last_attempt_at'=> now(),
             'last_error_log' => null,
+            'synced_at'      => now(),
         ]);
 
         \Illuminate\Support\Facades\Cache::forget('dashboard_metrics_counts');

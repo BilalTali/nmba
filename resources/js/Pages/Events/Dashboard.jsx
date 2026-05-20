@@ -25,6 +25,108 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // SRE Uptime states
+    const [uptimeRange, setUptimeRange] = useState('24h'); // '6h', '12h', '24h'
+    const [hoveredBucket, setHoveredBucket] = useState(null);
+
+    // SRE Uptime calculation
+    const getUptimeTimelineMetrics = () => {
+        if (!telemetry || telemetry.length === 0) {
+            return {
+                overallUptime: 100,
+                buckets: Array.from({ length: 48 }, (_, i) => ({
+                    id: i,
+                    status: 'no_data',
+                    uptime: 100,
+                    latency: 0,
+                    startLabel: '--:--',
+                    endLabel: '--:--',
+                    pointCount: 0
+                }))
+            };
+        }
+
+        // Determine maximum timestamp as reference point
+        const maxTimestamp = Math.max(...telemetry.map(t => t.timestamp));
+        
+        const durations = {
+            '24h': 24 * 60 * 60,
+            '12h': 12 * 60 * 60,
+            '6h': 6 * 60 * 60,
+        };
+
+        const activeDuration = durations[uptimeRange] || durations['24h'];
+        const startThreshold = maxTimestamp - activeDuration;
+
+        // Filter telemetries in range
+        const rangePoints = telemetry.filter(t => t.timestamp >= startThreshold);
+
+        // Overall Uptime math
+        const totalPoints = rangePoints.length;
+        const onlinePoints = rangePoints.filter(t => t.is_online).length;
+        const overallUptime = totalPoints > 0 ? (onlinePoints / totalPoints) * 100 : 100;
+
+        // Group into 48 buckets
+        const bucketSizeSec = activeDuration / 48;
+        const buckets = [];
+
+        for (let i = 0; i < 48; i++) {
+            const bucketStart = startThreshold + (i * bucketSizeSec);
+            const bucketEnd = bucketStart + bucketSizeSec;
+
+            // Find all points in this bucket
+            const pointsInBucket = rangePoints.filter(t => t.timestamp >= bucketStart && t.timestamp < bucketEnd);
+
+            const formatTime = (ts) => {
+                const date = new Date(ts * 1000);
+                return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+            };
+
+            const startLabel = formatTime(bucketStart);
+            const endLabel = formatTime(bucketEnd);
+
+            if (pointsInBucket.length === 0) {
+                buckets.push({
+                    id: i,
+                    status: 'no_data',
+                    uptime: 0,
+                    latency: 0,
+                    startLabel,
+                    endLabel,
+                    pointCount: 0
+                });
+            } else {
+                const onlineCount = pointsInBucket.filter(t => t.is_online).length;
+                const ratio = onlineCount / pointsInBucket.length;
+                const avgLatency = Math.round(pointsInBucket.reduce((sum, p) => sum + p.latency, 0) / pointsInBucket.length);
+
+                let status = 'online';
+                if (ratio === 0) {
+                    status = 'offline';
+                } else if (ratio < 1) {
+                    status = 'degraded';
+                }
+
+                buckets.push({
+                    id: i,
+                    status,
+                    uptime: Math.round(ratio * 100),
+                    latency: avgLatency,
+                    startLabel,
+                    endLabel,
+                    pointCount: pointsInBucket.length
+                });
+            }
+        }
+
+        return {
+            overallUptime,
+            buckets
+        };
+    };
+
+    const { overallUptime, buckets } = getUptimeTimelineMetrics();
+
     useEffect(() => {
         const checkPortalHealth = async () => {
             try {
@@ -163,30 +265,155 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                 <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'mr-80' : ''}`}>
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
 
-                        {/* Portal Health Banner */}
+                        {/* SRE Portal Health & Uptime Dashboard */}
                         {isDistrictAdmin && (
-                            <div className={`px-6 py-5 rounded-2xl border transition-all duration-500 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 
-                                ${healthState.status === 'online' 
-                                    ? (healthState.auto_sync_paused ? 'bg-amber-50/80 border-amber-200' : 'bg-emerald-50/80 border-emerald-200') 
-                                    : healthState.status === 'offline' ? 'bg-rose-50/80 border-rose-200' : 'bg-white border-slate-200'}`}>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative flex h-4 w-4">
-                                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
-                                            ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-400' : 'bg-emerald-400') : healthState.status === 'offline' ? 'bg-rose-400' : 'bg-slate-400'}`}></span>
-                                        <span className={`relative inline-flex rounded-full h-4 w-4 
-                                            ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-500' : 'bg-emerald-500') : healthState.status === 'offline' ? 'bg-rose-500' : 'bg-slate-500'}`}></span>
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-6">
+                                {/* Header Block */}
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div className="flex items-center gap-3.5">
+                                        {/* Pulsing state circle */}
+                                        <div className="relative flex h-5 w-5 shrink-0">
+                                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 
+                                                ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-400' : 'bg-emerald-400') : healthState.status === 'offline' ? 'bg-rose-400' : 'bg-slate-400'}`}></span>
+                                            <span className={`relative inline-flex rounded-full h-5 w-5 
+                                                ${healthState.status === 'online' ? (healthState.auto_sync_paused ? 'bg-amber-500' : 'bg-emerald-500') : healthState.status === 'offline' ? 'bg-rose-500' : 'bg-slate-500'}`}></span>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sync Target Portal</span>
+                                                <span className="font-mono text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">nashamuktjk.org</span>
+                                            </div>
+                                            <h4 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">
+                                                {healthState.status === 'probing' && 'Initializing active health probing...'}
+                                                {healthState.status === 'offline' && <span className="text-rose-600">Offline (Timeout or 522 Cloudflare Error)</span>}
+                                                {healthState.status === 'online' && (
+                                                    healthState.auto_sync_paused 
+                                                        ? <span className="text-amber-600">Online — Auto-Sync Paused ({healthState.pending_count} pending)</span>
+                                                        : <span className="text-emerald-600">Online — Operational {healthState.triggered_sync && `(Syncing ${healthState.pending_count} events)`}</span>
+                                                )}
+                                            </h4>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 block">Connection Status</span>
-                                        <h4 className="text-base font-extrabold text-slate-800">
-                                            {healthState.status === 'probing' && 'Probing NashaMukt J&K Portal...'}
-                                            {healthState.status === 'offline' && <span className="text-rose-700">Offline (Timeout or 522 Error). Waiting for recovery.</span>}
-                                            {healthState.status === 'online' && (
-                                                healthState.auto_sync_paused 
-                                                    ? <span className="text-amber-700">Online — Auto-Sync PAUSED ({healthState.pending_count} pending)</span>
-                                                    : <span className="text-emerald-700">Online — Systems Operational {healthState.triggered_sync && `(Auto-syncing ${healthState.pending_count} events)`}</span>
-                                            )}
-                                        </h4>
+
+                                    {/* Right Side: Uptime Percentage & Filter buttons */}
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto self-stretch md:self-auto justify-between md:justify-end">
+                                        <div className="flex flex-col items-start sm:items-end">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Portal Uptime</span>
+                                            <div className="flex items-baseline gap-1.5 mt-0.5">
+                                                <span className="text-2xl font-black text-slate-800 font-mono tracking-tight">{overallUptime.toFixed(2)}%</span>
+                                                <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100 uppercase tracking-wide">24h Base</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
+                                            {[
+                                                { id: '6h', label: '6 Hours' },
+                                                { id: '12h', label: '12 Hours' },
+                                                { id: '24h', label: '24 Hours' }
+                                            ].map(range => (
+                                                <button
+                                                    key={range.id}
+                                                    type="button"
+                                                    onClick={() => setUptimeRange(range.id)}
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${uptimeRange === range.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                                >
+                                                    {range.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Uptime Timeline Grid (48 rounded pills) */}
+                                <div className="space-y-3">
+                                    {/* Interactive Timeline Relative Container */}
+                                    <div className="relative">
+                                        <div 
+                                            className="h-10 select-none"
+                                            style={{ 
+                                                display: 'grid', 
+                                                gridTemplateColumns: 'repeat(48, minmax(0, 1fr))',
+                                                gap: '3.5px'
+                                            }}
+                                        >
+                                            {buckets.map((bucket) => {
+                                                let bgClass = 'bg-slate-200 hover:bg-slate-300';
+                                                if (bucket.status === 'online') bgClass = 'bg-emerald-500 hover:bg-emerald-400';
+                                                else if (bucket.status === 'offline') bgClass = 'bg-rose-500 hover:bg-rose-400';
+                                                else if (bucket.status === 'degraded') bgClass = 'bg-amber-500 hover:bg-amber-400';
+
+                                                return (
+                                                    <div
+                                                        key={bucket.id}
+                                                        className={`rounded cursor-pointer transition-all hover:scale-y-110 duration-150 relative h-full ${bgClass}`}
+                                                        onMouseEnter={(e) => {
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                            const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                                                            setHoveredBucket({
+                                                                ...bucket,
+                                                                left: rect.left - parentRect.left + (rect.width / 2),
+                                                            });
+                                                        }}
+                                                        onMouseLeave={() => setHoveredBucket(null)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Smooth Glassmorphic Tooltip */}
+                                        {hoveredBucket && (
+                                            <div
+                                                className="absolute bottom-full mb-3 z-30 -translate-x-1/2 pointer-events-none transition-all duration-200 ease-out"
+                                                style={{ left: `${hoveredBucket.left}px` }}
+                                            >
+                                                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-xl p-3.5 text-white w-48 space-y-2">
+                                                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-extrabold tracking-wider border-b border-slate-700/60 pb-1.5 uppercase">
+                                                        <span>{hoveredBucket.startLabel} - {hoveredBucket.endLabel}</span>
+                                                        <span>Bucket #{hoveredBucket.id + 1}</span>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <div className="flex justify-between items-center text-xs">
+                                                            <span className="text-slate-400 font-semibold">Status:</span>
+                                                            <span className={`font-black uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded ${
+                                                                hoveredBucket.status === 'online' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                hoveredBucket.status === 'offline' ? 'bg-rose-500/20 text-rose-400' :
+                                                                hoveredBucket.status === 'degraded' ? 'bg-amber-500/20 text-amber-400' :
+                                                                'bg-slate-500/20 text-slate-400'
+                                                            }`}>
+                                                                {hoveredBucket.status === 'no_data' ? 'No Data' : hoveredBucket.status}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-xs">
+                                                            <span className="text-slate-400 font-semibold">Uptime Ratio:</span>
+                                                            <span className="font-bold font-mono">{hoveredBucket.uptime}%</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-xs">
+                                                            <span className="text-slate-400 font-semibold">Avg Latency:</span>
+                                                            <span className="font-bold font-mono text-emerald-400">{hoveredBucket.status === 'no_data' ? 'N/A' : `${hoveredBucket.latency} ms`}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-xs">
+                                                            <span className="text-slate-400 font-semibold">Samples:</span>
+                                                            <span className="font-bold font-mono">{hoveredBucket.pointCount}</span>
+                                                        </div>
+                                                    </div>
+                                                    {/* Tiny tooltip arrow */}
+                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-slate-900" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Timeline Legend */}
+                                    <div className="flex flex-wrap justify-between items-center gap-2 pt-1.5 text-[10px] font-bold text-slate-500">
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500"></span> 100% Operational</span>
+                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-500"></span> Degraded / Outage Spot</span>
+                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-500"></span> Full Outage</span>
+                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-slate-200"></span> No Probe Data</span>
+                                        </div>
+                                        <div className="font-mono text-slate-400">
+                                            Range: {uptimeRange === '24h' ? 'Last 24 Hours' : uptimeRange === '12h' ? 'Last 12 Hours' : 'Last 6 Hours'} to Now
+                                        </div>
                                     </div>
                                 </div>
                             </div>

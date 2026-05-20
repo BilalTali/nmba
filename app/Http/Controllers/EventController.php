@@ -240,6 +240,7 @@ class EventController extends Controller
                 'submission_id' => $submissionId,
                 'semantic_hash' => $semanticHash,
                 'sync_status'   => 'pending',
+                'uploader_ip'   => $request->ip(),
             ]));
 
             // Backfill the event_id into deduplications now that we have it
@@ -368,7 +369,7 @@ class EventController extends Controller
         $pendingCount = Event::where('sync_status', 'pending')->count();
 
         // Record system telemetry
-        $this->recordTelemetry($pendingCount, $healthService->getLastResponseTime());
+        $this->recordTelemetry($pendingCount, $healthService->getLastResponseTime(), $isOnline);
         $telemetry = $this->getTelemetryHistory();
 
         if (!$isOnline) {
@@ -683,11 +684,11 @@ class EventController extends Controller
         return response(file_get_contents($logPath), 200, ['Content-Type' => 'text/plain']);
     }
 
-    protected function recordTelemetry(int $pendingCount, float $responseTime): void
+    protected function recordTelemetry(int $pendingCount, float $responseTime, bool $isOnline): void
     {
         $lockKey = 'telemetry_log_lock';
         if (!Cache::has($lockKey)) {
-            Cache::put($lockKey, true, 60);
+            Cache::put($lockKey, true, 15);
 
             $load = function_exists('sys_getloadavg') ? (sys_getloadavg()[0] ?? 0) : 0;
             $mem = memory_get_usage(true) / 1024 / 1024;
@@ -702,6 +703,7 @@ class EventController extends Controller
                 'disk_usage'    => $diskUsage,
                 'pending_jobs'  => $pendingCount,
                 'response_time' => $responseTime,
+                'is_online'     => $isOnline,
             ]);
 
             // Pruning old logs (keep last 24 hours of logs)
@@ -714,14 +716,23 @@ class EventController extends Controller
         // Seed some realistic data if the table is completely empty (e.g. first load)
         if (\App\Models\SystemTelemetry::count() <= 1) {
             $now = now();
-            for ($i = 30; $i >= 0; $i--) {
+            // Seed 288 records (every 5 minutes for the last 24 hours)
+            for ($i = 288; $i >= 0; $i--) {
                 $time = (clone $now)->subMinutes($i * 5);
-                $load = 1.0 + (sin($i / 3) * 0.4) + (rand(0, 100) / 200.0);
-                $mem = 45.0 + (cos($i / 3) * 3.0) + (rand(0, 100) / 50.0);
+                $load = 1.0 + (sin($i / 10) * 0.4) + (rand(0, 100) / 200.0);
+                $mem = 45.0 + (cos($i / 10) * 3.0) + (rand(0, 100) / 50.0);
                 $diskFree = @disk_free_space('/') ?: 0;
                 $diskTotal = @disk_total_space('/') ?: 1;
                 $diskUsage = 100 - (($diskFree / $diskTotal) * 100);
                 $latency = 0.12 + (rand(0, 100) / 800.0);
+                
+                // 98% uptime profile (offline on specific slots to demonstrate different states)
+                $isOnline = true;
+                if ($i % 80 === 0) {
+                    $isOnline = false; // Outage block
+                } elseif ($i % 45 === 0) {
+                    $isOnline = (rand(0, 1) === 1); // Degraded block
+                }
 
                 \App\Models\SystemTelemetry::create([
                     'created_at'    => $time,
@@ -730,23 +741,26 @@ class EventController extends Controller
                     'disk_usage'    => $diskUsage,
                     'pending_jobs'  => rand(0, 5),
                     'response_time' => $latency,
+                    'is_online'     => $isOnline,
                 ]);
             }
         }
 
-        return \App\Models\SystemTelemetry::orderBy('created_at', 'desc')
-            ->limit(40)
+        return \App\Models\SystemTelemetry::where('created_at', '>=', now()->subHours(24))
+            ->orderBy('created_at', 'desc')
             ->get()
             ->reverse()
             ->values()
             ->map(function ($t) {
                 return [
                     'time' => $t->created_at->setTimezone('Asia/Kolkata')->format('H:i'),
+                    'timestamp' => $t->created_at->timestamp,
                     'cpu' => round($t->cpu_load, 2),
                     'memory' => round($t->memory_usage, 1),
                     'disk' => round($t->disk_usage, 1),
                     'pending' => $t->pending_jobs,
                     'latency' => round($t->response_time * 1000, 0), // to ms
+                    'is_online' => (bool) $t->is_online,
                 ];
             });
     }

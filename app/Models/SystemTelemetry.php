@@ -17,6 +17,7 @@ class SystemTelemetry extends Model
         'disk_usage',
         'pending_jobs',
         'response_time',
+        'is_online',
     ];
 
     protected $casts = [
@@ -26,5 +27,6 @@ class SystemTelemetry extends Model
         'disk_usage' => 'float',
         'pending_jobs' => 'integer',
         'response_time' => 'float',
+        'is_online' => 'boolean',
     ];
 }

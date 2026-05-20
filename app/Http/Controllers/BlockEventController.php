@@ -71,8 +71,48 @@ class BlockEventController extends Controller
                 ->withErrors(['photo' => 'Image processing failed: ' . $e->getMessage()]);
         }
 
+        $semanticHash = Event::generateSemanticHash(
+            $validated['event_name'],
+            $validated['event_date'],
+            $validated['event_venue'],
+            (int) $validated['actual_attendance'],
+            (int) auth()->user()->block_id,
+            $coordinatorName
+        );
+
+        $submissionId = Event::generateSubmissionId(
+            $validated['event_name'],
+            $validated['event_date'],
+            $validated['event_venue'],
+            (int) $validated['actual_attendance'],
+            (int) auth()->user()->block_id,
+            $coordinatorName
+        );
+
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
+            // DB-backed Deduplication check
+            try {
+                \Illuminate\Support\Facades\DB::table('deduplications')->insert([
+                    'semantic_hash' => $semanticHash,
+                    'event_id'      => null, // will update after event is created
+                    'created_at'    => now(),
+                ]);
+            } catch (\Illuminate\Database\QueryException $dedupEx) {
+                \Illuminate\Support\Facades\DB::rollBack();
+                \Illuminate\Support\Facades\Cache::forget($lockKey);
+                foreach ($photoPaths as $path) {
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
+                }
+                if ($dedupEx->getCode() === '23000' || str_contains($dedupEx->getMessage(), 'Duplicate entry')) {
+                    return redirect()->back()->withInput()
+                        ->withErrors(['duplicate' => 'This event has already been submitted. If you believe this is an error, please contact the administrator.']);
+                }
+                throw $dedupEx;
+            }
+
             $event = Event::create(array_merge(
                 $validated,
                 [
@@ -82,16 +122,17 @@ class BlockEventController extends Controller
                     'district_name'        => config('app.district_name'),
                     'photo_paths'          => $photoPaths,
                     'sync_status'          => 'pending',
-                    'unique_hash'          => Event::generateUniqueHash(
-                        $validated['event_name'],
-                        $validated['event_date'],
-                        $validated['event_venue'],
-                        (int) $validated['actual_attendance'],
-                        auth()->user()->block_id,
-                        $coordinatorName
-                    ),
+                    'unique_hash'          => $submissionId,
+                    'submission_id'        => $submissionId,
+                    'semantic_hash'        => $semanticHash,
+                    'uploader_ip'          => $request->ip(),
                 ]
             ));
+
+            // Backfill the event_id into deduplications now that we have it
+            \Illuminate\Support\Facades\DB::table('deduplications')
+                ->where('semantic_hash', $semanticHash)
+                ->update(['event_id' => $event->id]);
 
             \Illuminate\Support\Facades\DB::commit();
 

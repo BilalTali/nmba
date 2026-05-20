@@ -81,11 +81,54 @@ export default function Index({ events, block_name }) {
                                                 <td className="py-4 px-6 align-top">
                                                     <div className="font-bold text-slate-800 text-sm mb-0.5">{event.event_name}</div>
                                                     <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-1.5">
-                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         </svg>
                                                         {event.event_venue}
+                                                    </div>
+
+                                                    <div className="flex flex-wrap gap-1.5 mt-2.5 items-center text-[10px] font-bold tracking-tight text-slate-500">
+                                                        {/* Upload Datetime */}
+                                                        <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/60 px-2 py-0.5 rounded-md hover:bg-slate-100 transition-colors" title="Upload Datetime">
+                                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            <span>Log: {new Date(event.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}, {new Date(event.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        </span>
+
+                                                        {/* Uploader IP */}
+                                                        <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/60 px-2 py-0.5 rounded-md font-mono" title="Uploader IP Address">
+                                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                                            </svg>
+                                                            <span>IP: {event.uploader_ip || 'Local'}</span>
+                                                        </span>
+
+                                                        {/* Sync Timeline Badges */}
+                                                        {event.sync_status === 'synced' && event.synced_at ? (
+                                                            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded-md" title="Synchronization Timestamp">
+                                                                <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                <span>Sync: {new Date(event.synced_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}, {new Date(event.synced_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                            </span>
+                                                        ) : event.sync_status === 'syncing' ? (
+                                                            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded-md" title="Sync Status">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-spin"></span>
+                                                                <span>Syncing...</span>
+                                                            </span>
+                                                        ) : event.sync_status === 'failed_permanently' ? (
+                                                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200/60 px-2 py-0.5 rounded-md" title="Sync Status">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                                <span>Sync Failed</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-md" title="Sync Status">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                                <span>Sync Pending</span>
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-6 align-top">
