@@ -76,7 +76,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        {user.role !== 'event_creator' && (
+                                        {user.role === 'admin' && (
                                             <Dropdown.Link href={route('profile.edit')}>
                                                 Profile
                                             </Dropdown.Link>
@@ -137,7 +137,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
                         <div className="space-y-1">
-                            {user.role !== 'event_creator' && (
+                            {user.role === 'admin' && (
                                 <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
                             )}
                             <ResponsiveNavLink method="post" href={route('logout')} as="button">

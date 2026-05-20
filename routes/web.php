@@ -108,6 +108,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('users', \App\Http\Controllers\UserController::class);
 
     Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/events/create', [\App\Http\Controllers\EventController::class, 'create'])->name('events.create');
     Route::post('/events', [\App\Http\Controllers\EventController::class, 'store'])->name('events.store');
     Route::get('/events/export', [\App\Http\Controllers\EventController::class, 'exportCsv'])->name('events.export');
@@ -138,12 +142,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('admin.logs.audit');
 });
 
-// Common authenticated routes
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Profile routes moved to admin group
 
 // Block worker routes
 Route::middleware(['auth'])->prefix('block')->name('block.')->group(function () {
