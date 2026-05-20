@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
 
+use GuzzleHttp\Cookie\SetCookie;
+
 class HttpPortalSyncService implements PortalSyncInterface
 {
     protected string $baseUrl;
@@ -40,14 +42,55 @@ class HttpPortalSyncService implements PortalSyncInterface
         }
     }
 
+    protected function loadCookieJar(): CookieJar
+    {
+        $cookieJar = new CookieJar();
+        $cachedCookies = Cache::get('sre_portal_session_cookies');
+        
+        if (is_array($cachedCookies)) {
+            foreach ($cachedCookies as $cookieArray) {
+                if (isset($cookieArray['Name'], $cookieArray['Value'])) {
+                    $cookieJar->setCookie(new SetCookie($cookieArray));
+                }
+            }
+        }
+        
+        return $cookieJar;
+    }
+
+    protected function saveCookieJar(CookieJar $cookieJar): void
+    {
+        Cache::put('sre_portal_session_cookies', $cookieJar->toArray(), now()->addMinutes(30));
+    }
+
+    protected function getSubmissionToken(Client $client): ?string
+    {
+        try {
+            $response = $client->get($this->submitUrl);
+            $body = (string) $response->getBody();
+            $crawler = new Crawler($body);
+            
+            if ($crawler->filter('input[name="event_name"]')->count() > 0) {
+                if ($crawler->filter('input[name="_token"]')->count() > 0) {
+                    return $crawler->filter('input[name="_token"]')->attr('value');
+                }
+                if ($crawler->filter('meta[name="csrf-token"]')->count() > 0) {
+                    return $crawler->filter('meta[name="csrf-token"]')->attr('content');
+                }
+            }
+        } catch (Exception $e) {
+            Log::channel('sync')->warning('Session verification probe failed: ' . $e->getMessage());
+        }
+        return null;
+    }
+
     public function sync(Event $event): bool
     {
         if ($event->sync_status === 'synced') {
             return true;
         }
 
-        // Fresh CookieJar per sync execution — prevents session bleed between jobs.
-        $cookieJar = new CookieJar();
+        $cookieJar = $this->loadCookieJar();
 
         $client = new Client([
             'cookies'         => $cookieJar,
@@ -62,9 +105,32 @@ class HttpPortalSyncService implements PortalSyncInterface
         ]);
 
         try {
-            $loginToken      = $this->executeLoginHandshake($client);
-            $this->authenticateSession($client, $loginToken);
-            $submissionToken = $this->retrieveSubmissionToken($client, $loginToken);
+            $submissionToken = $this->getSubmissionToken($client);
+            
+            if (empty($submissionToken)) {
+                Log::channel('sync')->info('No active portal session. Re-authenticating.');
+                
+                $cookieJar = new CookieJar();
+                $client = new Client([
+                    'cookies'         => $cookieJar,
+                    'timeout'         => 30,
+                    'connect_timeout' => 10,
+                    'read_timeout'    => 30,
+                    'allow_redirects' => ['max' => 10, 'strict' => false, 'track_redirects' => false],
+                    'headers'         => [
+                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept'     => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    ],
+                ]);
+                
+                $loginToken      = $this->executeLoginHandshake($client);
+                $this->authenticateSession($client, $loginToken);
+                $submissionToken = $this->retrieveSubmissionToken($client, $loginToken);
+                
+                $this->saveCookieJar($cookieJar);
+            } else {
+                Log::channel('sync')->info('Reusing active portal session.');
+            }
 
             return $this->dispatchPayload($client, $event, $submissionToken);
         } finally {
