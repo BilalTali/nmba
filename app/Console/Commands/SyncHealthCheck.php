@@ -76,7 +76,9 @@ class SyncHealthCheck extends Command
         $this->line($body);
 
         // Send email alert (unless --dry-run)
-        $adminEmail = env('ADMIN_EMAIL');
+        // Use config() instead of env() — env() returns null when config:cache is active in production.
+        // Ensure ADMIN_EMAIL is referenced in config/app.php as: 'admin_email' => env('ADMIN_EMAIL').
+        $adminEmail = config('app.admin_email');
         if (!$this->option('dry-run') && !empty($adminEmail)) {
             try {
                 Mail::to($adminEmail)->send(new \App\Mail\SyncBacklogMail($body, $subject));
@@ -88,9 +90,9 @@ class SyncHealthCheck extends Command
                 ]);
             }
         } elseif ($this->option('dry-run')) {
-            $this->line('[dry-run] Email would be sent to: ' . ($adminEmail ?: '(ADMIN_EMAIL not set)'));
+            $this->line('[dry-run] Email would be sent to: ' . ($adminEmail ?: '(ADMIN_EMAIL not set in config/app.php)'));
         } else {
-            $this->warn('ADMIN_EMAIL not set in .env — skipping email alert.');
+            $this->warn('ADMIN_EMAIL not set — skipping email alert. Add it to config/app.php: \'admin_email\' => env(\'ADMIN_EMAIL\').');
         }
 
         return Command::FAILURE; // Non-zero exit signals monitoring tools that backlog exists

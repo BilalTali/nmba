@@ -79,17 +79,22 @@ class SyncEventJob implements ShouldQueue
             ]);
         }
 
-        // Infinite retry loop for server downtime: reset counter at 9 to prevent permanent failure
+        // Cycle-reset: when attempts reach 9, reset the counter and return the event
+        // to 'pending' status, then delete this job. The scheduler's next 5-minute sweep
+        // will re-select it and dispatch a fresh job.
+        // This avoids an infinite hot-loop in the queue while keeping the event alive for retry.
         if ($this->event->sync_attempts >= 9) {
-            $this->event->update(['sync_attempts' => 0]);
-            $this->event->refresh();
-        }
-
-        // Overflow guard: dead-letter records that have exhausted all retry allocation slots.
-        if ($this->event->sync_attempts >= 10) {
-            $this->event->markFailedPermanently(
-                'Max retry allocation limit of 10 attempts reached. Record quarantined.'
-            );
+            Log::channel('sync')->info('Attempt cycle complete — resetting counter and returning to pending pool.', [
+                'event_id'      => $this->event->id,
+                'sync_attempts' => $this->event->sync_attempts,
+            ]);
+            $this->event->update([
+                'sync_attempts'   => 0,
+                'sync_status'     => 'pending',
+                'last_attempt_at' => now(),
+            ]);
+            // Clear dispatch lock so the scheduler can re-select this event next sweep.
+            \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
             $this->delete();
             return;
         }

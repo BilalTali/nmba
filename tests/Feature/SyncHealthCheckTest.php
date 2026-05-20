@@ -27,8 +27,9 @@ class SyncHealthCheckTest extends TestCase
         parent::setUp();
         Mail::fake();
 
-        // Set ADMIN_EMAIL so email logic is exercised
-        putenv('ADMIN_EMAIL=admin@nmbabudgam.in');
+        // Set admin_email via config() — the command now uses config('app.admin_email')
+        // instead of env() so that it works correctly when config:cache is active.
+        config(['app.admin_email' => 'admin@nmbabudgam.in']);
 
         // Clean up any existing log file from previous test runs
         $logPath = storage_path('logs/sync-health.log');
@@ -39,7 +40,7 @@ class SyncHealthCheckTest extends TestCase
 
     protected function tearDown(): void
     {
-        putenv('ADMIN_EMAIL=');
+        config(['app.admin_email' => null]);
         parent::tearDown();
     }
 

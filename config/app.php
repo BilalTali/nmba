@@ -147,4 +147,17 @@ return [
     */
     'sync_mode' => env('SYNC_MODE', 'async'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Alert Email
+    |--------------------------------------------------------------------------
+    |
+    | Recipient address for system health alerts (sync backlog, credential checks).
+    | Always reference via config('app.admin_email') — never env() directly —
+    | so it survives config:cache in production.
+    |
+    */
+    'admin_email' => env('ADMIN_EMAIL'),
+
 ];
+

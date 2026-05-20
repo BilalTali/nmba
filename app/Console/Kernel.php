@@ -76,23 +76,23 @@ class Kernel extends ConsoleKernel
 
                 // Atomic CAS update per record before dispatching — prevents scheduler-level
                 // duplicate dispatching across distributed worker nodes.
-                $updated = Event::where('id', $event->id)
-                    ->where(function ($query) {
-                        $query->where('sync_status', 'pending')
-                              ->where(function ($q) {
-                                  $q->whereNull('last_attempt_at')
-                                    ->orWhere('last_attempt_at', '<', now()->subMinutes(5));
-                              });
-                    })
-                    ->orWhere(function ($query) use ($event) {
-                        $query->where('id', $event->id)
-                              ->where('sync_status', 'syncing')
-                              ->where('updated_at', '<', now()->subMinutes(10));
-                    })
-                    ->update([
-                        'last_attempt_at' => now(),
-                        'sync_status'     => 'pending',
-                    ]);
+                $updated = Event::where(function ($query) {
+                    $query->where('sync_status', 'pending')
+                          ->where(function ($q) {
+                              $q->whereNull('last_attempt_at')
+                                ->orWhere('last_attempt_at', '<', now()->subMinutes(5));
+                          });
+                })
+                ->orWhere(function ($query) use ($event) {
+                    $query->where('id', $event->id)
+                          ->where('sync_status', 'syncing')
+                          ->where('updated_at', '<', now()->subMinutes(10))
+                          ->whereBetween('sync_attempts', [0, 9]); // prevent re-dispatch of locked (-1) or edge records
+                })
+                ->update([
+                    'last_attempt_at' => now(),
+                    'sync_status'     => 'pending',
+                ]);
 
                 if ($updated === 1) {
                     Cache::put($cacheKey, true, 3600);

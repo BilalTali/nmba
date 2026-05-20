@@ -386,8 +386,9 @@ class EventController extends Controller
     public function resetFailedSyncs(\Illuminate\Http\Request $request): RedirectResponse
     {
         try {
-            // Reset failed_permanently, failed, and manually locked out (sync_attempts = -1) events
-            $updatedCount = Event::whereIn('sync_status', ['failed_permanently', 'failed'])
+            // Reset failed_permanently and manually locked out (sync_attempts = -1) events.
+            // Note: 'failed' is not a valid status in this system — only 'failed_permanently' exists.
+            $updatedCount = Event::where('sync_status', 'failed_permanently')
                 ->orWhere('sync_attempts', -1)
                 ->update([
                     'sync_status'     => 'pending',
@@ -764,7 +765,9 @@ class EventController extends Controller
 
     public function viewSyncLogs(): \Symfony\Component\HttpFoundation\Response
     {
-        $logPath = storage_path('logs/sync-' . now()->format('Y-m-d') . '.log');
+        // Use app timezone (Asia/Kolkata) so the date matches the log filename at all hours.
+        // Using UTC would pick the wrong date between midnight IST and midnight UTC (00:00-05:30 IST).
+        $logPath = storage_path('logs/sync-' . now(config('app.timezone'))->format('Y-m-d') . '.log');
         if (!file_exists($logPath)) {
             $files = glob(storage_path('logs/sync-*.log'));
             if (!empty($files)) {
