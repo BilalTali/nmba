@@ -92,12 +92,24 @@ log "Step 9/10 — Registering cron-based scheduler & queue worker..."
 CRON_CMD="*/5 * * * * $PHP $APP_DIR/artisan queue:work database --max-jobs=10 --tries=10 --timeout=110 >> $APP_DIR/storage/logs/cron-worker.log 2>&1"
 SCHEDULER_CMD="* * * * * $PHP $APP_DIR/artisan schedule:run >> /dev/null 2>&1"
 
-# Use marker comments and clean old entries to prevent duplicates
-remote "
-  (crontab -l 2>/dev/null | grep -v 'nmbaagent' | grep -v 'queue:work'; echo '# NMBA Scheduler'; echo '$SCHEDULER_CMD'; echo '# NMBA Queue Worker'; echo '$CRON_CMD') | crontab -
-  crontab -l | grep 'nmbaagent' && echo 'Cron jobs updated.' || echo 'Cron jobs NOT updated!'
-"
-ok "Cron scheduler and queue worker registered."
+# Check if crontab utility is available (disabled on some shared hosts like Hostinger)
+HAS_CRONTAB=$(remote "command -v crontab >/dev/null 2>&1 && echo 'yes' || echo 'no'")
+
+if [ "$HAS_CRONTAB" = "yes" ]; then
+    remote "
+      (crontab -l 2>/dev/null | grep -v 'nmbaagent' | grep -v 'queue:work'; echo '# NMBA Scheduler'; echo '$SCHEDULER_CMD'; echo '# NMBA Queue Worker'; echo '$CRON_CMD') | crontab -
+    "
+    ok "Cron scheduler and queue worker registered in system crontab."
+else
+    warn "crontab utility not available on this server (standard for Hostinger Shared hosting)."
+    warn "Please ensure you have configured the following cron jobs in the Hostinger hPanel control panel UI:"
+    warn "  1. Scheduler Command (every minute):"
+    warn "     * * * * * $PHP $APP_DIR/artisan schedule:run >> /dev/null 2>&1"
+    warn "  2. Web Cron Trigger 1 (every 5 mins):"
+    warn "     */5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=YOUR_CRON_TOKEN\" > /dev/null 2>&1"
+    warn "  3. Web Cron Trigger 2 (every 5 mins, offset by 2 mins):"
+    warn "     2-57/5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=YOUR_CRON_TOKEN\" > /dev/null 2>&1"
+fi
 
 # STEP 10 — Final health check
 log "Step 10/10 — Running final health probe..."
