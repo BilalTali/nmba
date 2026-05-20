@@ -581,6 +581,10 @@ class EventController extends Controller
             'Coordinator Name',
             'Coordinator Contact',
             'Coordinator Designation',
+            'Device ID',
+            'Uploader IP',
+            'Sync Status',
+            'Synced At',
             'Created At',
             'Updated At'
         ];
@@ -609,6 +613,10 @@ class EventController extends Controller
                     $event->event_coordinator_name,
                     $event->event_coordinator_contact_number,
                     $event->event_coordinator_desig,
+                    $event->device_id ?? 'Unknown',
+                    $event->uploader_ip ?? 'N/A',
+                    $event->sync_status,
+                    $event->synced_at ? $event->synced_at->toDateTimeString() : '',
                     $event->created_at ? $event->created_at->toDateTimeString() : '',
                     $event->updated_at ? $event->updated_at->toDateTimeString() : ''
                 ];
