@@ -36,37 +36,10 @@ Route::get('/', function () {
         ]);
     }
 
-    // Chart Data: Block-wise Weekly Status Bar Chart (Simplified to just total events)
-    $blocks = \App\Models\Block::pluck('name', 'id')->toArray();
-
-    $blockData = \App\Models\Event::where('created_at', '>=', now()->subDays(7)->startOfDay())
-        ->selectRaw('block_id, COUNT(*) as count')
-        ->groupBy('block_id')
-        ->get();
-
-    $eventsByBlock = [];
-    foreach ($blocks as $id => $name) {
-        $eventsByBlock[$id] = [
-            'name' => $name, 
-            'total' => 0
-        ];
-    }
-
-    foreach ($blockData as $row) {
-        $id = $row->block_id;
-        if (!isset($eventsByBlock[$id])) continue;
-        
-        $eventsByBlock[$id]['total'] += $row->count;
-    }
-    
-    $eventsByBlock = array_values(array_filter($eventsByBlock, fn($b) => $b['total'] > 0));
-    usort($eventsByBlock, fn($a, $b) => $b['total'] - $a['total']);
-
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'liveMetrics' => $liveMetrics,
         'eventsOverTime' => $eventsOverTime,
-        'eventsByBlock' => $eventsByBlock
     ]);
 });
 

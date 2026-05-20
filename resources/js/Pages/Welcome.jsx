@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
-import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-export default function Welcome({ auth, liveMetrics = [], eventsOverTime = [], eventsByBlock = [] }) {
+export default function Welcome({ auth, liveMetrics = [], eventsOverTime = [] }) {
     return (
         <>
             <Head title="Nasha Mukt J&K Abhiyaan" />
@@ -80,10 +80,10 @@ export default function Welcome({ auth, liveMetrics = [], eventsOverTime = [], e
                         </div>
 
                         {/* Live Charts Section */}
-                        <div className="w-full max-w-6xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="w-full max-w-6xl mx-auto mt-12">
 
-                            {/* Events Over Time Area */}
-                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1">
+                            {/* Events Over Time Area — full width */}
+                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl">
                                 <h3 className="text-white text-lg font-bold mb-4">Events Registered (Last 7 Days)</h3>
                                 <div className="h-80">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -100,22 +100,6 @@ export default function Welcome({ auth, liveMetrics = [], eventsOverTime = [], e
                                             <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                                             <Area type="monotone" dataKey="count" name="Events" stroke="#6ee7b7" strokeWidth={3} fillOpacity={1} fill="url(#colorCountWelcome)" />
                                         </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-
-                            {/* Block-wise Weekly Status Bar Chart */}
-                            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl col-span-1">
-                                <h3 className="text-white text-lg font-bold mb-4">Block-Wise Events (Last 7 Days)</h3>
-                                <div className="h-80">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={eventsByBlock} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                            <XAxis dataKey="name" angle={-45} textAnchor="end" tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} height={60} />
-                                            <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{fill: '#a7f3d0', fontSize: 12}} />
-                                            <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                            <Bar dataKey="total" name="Total Events" fill="#10b981" radius={[4, 4, 0, 0]} />
-                                        </BarChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
