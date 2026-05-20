@@ -76,9 +76,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('events.reset-failed');
     Route::post('/events/purge-synced-media', [\App\Http\Controllers\EventController::class, 'purgeSyncedMedia'])
         ->middleware('throttle:30,1')->name('events.purge-media');
-    // Polled every 15s — allow max 10/min per user (2x safety margin)
+    // Polled every 15s — allow max 60/min per user to support multiple tabs without 429 errors
     Route::get('/events/check-portal', [\App\Http\Controllers\EventController::class, 'checkPortalHealth'])
-        ->middleware('throttle:10,1')->name('events.check-portal');
+        ->middleware('throttle:60,1')->name('events.check-portal');
 
     // Setting env route
     Route::post('/settings/env', [\App\Http\Controllers\SettingsController::class, 'updateEnv'])

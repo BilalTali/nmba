@@ -578,8 +578,8 @@ class EventController extends Controller
     public function checkPortalHealth(\App\Services\PortalHealthService $healthService): \Illuminate\Http\JsonResponse
     {
         // This endpoint is polled every 15 seconds — must be fast and non-blocking.
-        // Actively probe the portal (bypasses circuit-breaker cache to get a fresh answer).
-        $isOnline = $healthService->isAlive(true);
+        // Do NOT bypass the circuit breaker cache. Let the background Cron handle actual health probing.
+        $isOnline = $healthService->isAlive(false);
         $isPaused = Cache::get('auto_sync_paused', false);
 
         $pendingCount = Event::where('sync_status', 'pending')->count();
@@ -601,20 +601,13 @@ class EventController extends Controller
         $triggeredSync = false;
 
         if (!$isPaused) {
-            // Reset any delayed retry timers so the running queue daemon picks jobs up immediately.
             $hasDelayedJobs = false;
             try {
                 if (config('queue.default') === 'database' && \Illuminate\Support\Facades\Schema::hasTable('jobs')) {
                     $hasDelayedJobs = DB::table('jobs')->where('available_at', '>', time())->exists();
-                    if ($hasDelayedJobs) {
-                        DB::table('jobs')->update([
-                            'available_at' => time(),
-                            'reserved_at'  => null,
-                        ]);
-                    }
                 }
             } catch (\Throwable $jobEx) {
-                Log::channel('sync')->warning('Could not check or reset delayed jobs in checkPortalHealth: ' . $jobEx->getMessage());
+                Log::channel('sync')->warning('Could not check delayed jobs in checkPortalHealth: ' . $jobEx->getMessage());
             }
 
             if ($hasDelayedJobs) {
