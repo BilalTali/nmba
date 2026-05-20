@@ -52,6 +52,7 @@ remote "echo 'SSH OK'" >/dev/null && ok "SSH connection established." || fail "C
 # STEP 2 — Pull latest code from GitHub
 log "Step 2/10 — Pulling latest code from GitHub..."
 remote "cd $APP_DIR && git pull origin main 2>&1"
+remote "cp $APP_DIR/public_html/nmba-cron.php $APP_DIR/../public_html/nmba-cron.php"
 ok "Code updated."
 
 # STEP 3 — Install Composer production dependencies
