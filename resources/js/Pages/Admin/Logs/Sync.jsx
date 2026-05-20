@@ -54,8 +54,21 @@ export default function SyncLogs({ auth, logs }) {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 align-top">
                                                         {log.timestamp ? (
                                                             <div className="flex flex-col">
-                                                                <span className="font-medium text-gray-700">{log.timestamp.split(' ')[0]}</span>
-                                                                <span>{log.timestamp.split(' ')[1]}</span>
+                                                                {(() => {
+                                                                    const [datePart, timePart] = log.timestamp.split(' ');
+                                                                    const [y, m, d] = datePart.split('-');
+                                                                    const [H, i, s] = timePart.split(':');
+                                                                    const HNum = parseInt(H, 10);
+                                                                    const ampm = HNum >= 12 ? 'PM' : 'AM';
+                                                                    const H12 = HNum % 12 || 12;
+                                                                    
+                                                                    return (
+                                                                        <>
+                                                                            <span className="font-medium text-gray-700">{`${d}-${m}-${y}`}</span>
+                                                                            <span>{`${H12.toString().padStart(2, '0')}:${i}:${s} ${ampm}`}</span>
+                                                                        </>
+                                                                    );
+                                                                })()}
                                                             </div>
                                                         ) : '-'}
                                                     </td>
