@@ -231,9 +231,18 @@ export default function SyncedIndex({ events, blocks, filters, totalSynced }) {
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="text-sm font-black text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-1.5 inline-block shadow-sm">
-                                                        {event.formatted_synced_at}
-                                                    </div>
+                                                    {event.synced_at_is_historical ? (
+                                                        <div className="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 inline-flex items-center gap-1.5">
+                                                            <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            Historical
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-sm font-black text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-1.5 inline-block shadow-sm">
+                                                            {event.formatted_synced_at}
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

@@ -129,7 +129,7 @@ class EventController extends Controller
     public function syncedEventsIndex(\Illuminate\Http\Request $request): \Inertia\Response
     {
         $query = Event::where('sync_status', 'synced')
-            ->orderBy('synced_at', 'desc');
+            ->orderByRaw('COALESCE(synced_at, last_attempt_at, created_at) DESC');
 
         if ($request->filled('block_id')) {
             $query->where('block_id', $request->block_id);
@@ -151,7 +151,8 @@ class EventController extends Controller
         $events->getCollection()->transform(function ($event) {
             $event->formatted_synced_at = $event->synced_at 
                 ? \Illuminate\Support\Carbon::parse($event->synced_at)->timezone('Asia/Kolkata')->format('d-m-Y h:i:s A')
-                : 'N/A';
+                : 'Historical (Synced)';
+            $event->synced_at_is_historical = is_null($event->synced_at);
             return $event;
         });
 
