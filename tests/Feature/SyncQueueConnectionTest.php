@@ -297,4 +297,26 @@ class SyncQueueConnectionTest extends TestCase
         // Assert circuit breaker cache cleared
         $this->assertFalse(\Illuminate\Support\Facades\Cache::has('sre_circuit_breaker_portal_down'));
     }
+
+    /** @test */
+    public function is_alive_returns_true_immediately_without_network_request_if_cached(): void
+    {
+        \Illuminate\Support\Facades\Cache::put('sre_portal_is_alive', true, 300);
+
+        $service = new \App\Services\PortalHealthService();
+        
+        $this->assertTrue($service->isAlive());
+    }
+
+    /** @test */
+    public function trip_circuit_breaker_sets_breaker_status_and_clears_alive_cache(): void
+    {
+        \Illuminate\Support\Facades\Cache::put('sre_portal_is_alive', true, 300);
+
+        $service = new \App\Services\PortalHealthService();
+        $service->tripCircuitBreaker('Test reason');
+
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has('sre_circuit_breaker_portal_down'));
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('sre_portal_is_alive'));
+    }
 }

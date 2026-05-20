@@ -26,10 +26,18 @@ class PortalHealthService
 
     public function isAlive(bool $bypassCache = false): bool
     {
-        // If the circuit breaker is already tripped, skip the probe entirely unless bypassed.
-        if (!$bypassCache && Cache::get('sre_circuit_breaker_portal_down') === true) {
-            $this->lastResponseTime = (float) $this->timeout;
-            return false;
+        if (!$bypassCache) {
+            // If the circuit breaker is already tripped, skip the probe entirely unless bypassed.
+            if (Cache::get('sre_circuit_breaker_portal_down') === true) {
+                $this->lastResponseTime = (float) $this->timeout;
+                return false;
+            }
+
+            // If we recently verified the portal is alive, return true immediately.
+            if (Cache::get('sre_portal_is_alive') === true) {
+                $this->lastResponseTime = 0.1;
+                return true;
+            }
         }
 
         $client = new Client([
@@ -75,6 +83,9 @@ class PortalHealthService
                 return false;
             }
 
+            // If we successfully connected, cache the alive status for 5 minutes
+            Cache::put('sre_portal_is_alive', true, now()->addMinutes(5));
+
             // If we bypassed cache and successfully connected, untrip the circuit breaker!
             if ($bypassCache) {
                 Cache::forget('sre_circuit_breaker_portal_down');
@@ -92,15 +103,16 @@ class PortalHealthService
     }
 
     /**
-     * Activate the circuit breaker for 10 minutes and emit an alert log entry.
+     * Activate the circuit breaker for 3 minutes and emit an alert log entry.
      */
-    protected function tripCircuitBreaker(string $reason): void
+    public function tripCircuitBreaker(string $reason): void
     {
         Log::channel('sync')->alert('Circuit breaker tripped — portal unreachable or structurally degraded.', [
             'reason'   => $reason,
             'cooldown' => '3 minutes',
         ]);
 
+        Cache::forget('sre_portal_is_alive');
         Cache::put('sre_circuit_breaker_portal_down', true, now()->addMinutes(3));
     }
 }

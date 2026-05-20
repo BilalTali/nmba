@@ -126,6 +126,43 @@ class EventController extends Controller
         ]);
     }
 
+    public function syncedEventsIndex(\Illuminate\Http\Request $request): \Inertia\Response
+    {
+        $query = Event::where('sync_status', 'synced')
+            ->orderBy('synced_at', 'desc');
+
+        if ($request->filled('block_id')) {
+            $query->where('block_id', $request->block_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('event_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('event_date', '<=', $request->end_date);
+        }
+
+        $totalSynced = (clone $query)->count();
+
+        // Paginate and format synced_at to 12-hour format (Asia/Kolkata timezone)
+        $events = $query->paginate(20)->withQueryString();
+
+        // Map the paginated collection to include formatted_synced_at
+        $events->getCollection()->transform(function ($event) {
+            $event->formatted_synced_at = $event->synced_at 
+                ? \Illuminate\Support\Carbon::parse($event->synced_at)->timezone('Asia/Kolkata')->format('d-m-Y h:i:s A')
+                : 'N/A';
+            return $event;
+        });
+
+        return \Inertia\Inertia::render('Events/SyncedIndex', [
+            'events' => $events,
+            'blocks' => $this->getBlocks(),
+            'filters' => $request->only(['block_id', 'start_date', 'end_date']),
+            'totalSynced' => $totalSynced,
+        ]);
+    }
+
     public function index(\Illuminate\Http\Request $request): \Inertia\Response
     {
         $query = Event::orderBy('event_date', 'desc');
@@ -383,6 +420,7 @@ class EventController extends Controller
 
             // Clear the circuit breaker so sync attempts can proceed immediately.
             Cache::forget('sre_circuit_breaker_portal_down');
+            Cache::put('sre_portal_is_alive', true, now()->addMinutes(5));
 
             // Retrieve currently queued event IDs to avoid duplicate dispatching
             $queuedIds = $this->getQueuedEventIds();

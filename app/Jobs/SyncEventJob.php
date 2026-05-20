@@ -209,6 +209,13 @@ class SyncEventJob implements ShouldQueue
         // Audit log: record transient failure before computing backoff
         $this->writeSyncLog('failure', null, $errorMessage);
 
+        // Trip the circuit breaker since we encountered a transient connection/portal failure!
+        try {
+            app(\App\Services\PortalHealthService::class)->tripCircuitBreaker($errorMessage);
+        } catch (\Throwable $cbEx) {
+            Log::channel('sync')->warning('Could not trip circuit breaker in handleTransientFailure: ' . $cbEx->getMessage());
+        }
+
         $this->event->refresh();
         $attempts = $this->event->sync_attempts;
 

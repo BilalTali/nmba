@@ -40,6 +40,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {user.role === 'admin' && (
                                     <>
                                         <NavLink href={route('dashboard')} active={route().current('dashboard')} className="text-sm font-semibold">Dashboard</NavLink>
+                                        <NavLink href={route('admin.synced-events')} active={route().current('admin.synced-events')} className="text-sm font-semibold">Synced Events</NavLink>
                                         <NavLink href={route('events.index')} active={route().current('events.index')} className="text-sm font-semibold">View Events</NavLink>
                                         <NavLink href={route('events.create')} active={route().current('events.create')} className="text-sm font-semibold">Create Event</NavLink>
                                         <NavLink href={route('users.index')} active={route().current('users.index')} className="text-sm font-semibold">Manage Users</NavLink>
@@ -127,6 +128,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         {user.role === 'admin' && (
                             <>
                                 <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>Dashboard</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('admin.synced-events')} active={route().current('admin.synced-events')}>Synced Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.index')} active={route().current('events.index')}>View Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.create')} active={route().current('events.create')}>Create Event</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('users.index')} active={route().current('users.index')}>Manage Users</ResponsiveNavLink>

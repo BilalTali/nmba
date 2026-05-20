@@ -235,7 +235,7 @@ class AuditRehashTest extends TestCase
             ->get(route('admin.logs.sync'));
 
         $response->assertStatus(200)
-            ->assertHeader('Content-Type', 'text/plain; charset=utf-8')
+            ->assertHeader('Content-Type', 'text/html; charset=utf-8')
             ->assertSee('Fake sync log content');
 
         @unlink($logPath);
