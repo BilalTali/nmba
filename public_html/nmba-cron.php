@@ -97,6 +97,10 @@ try {
     }
     $app = require_once APP_ROOT . '/bootstrap/app.php';
 
+    /** @var \Illuminate\Contracts\Console\Kernel $kernel */
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+
     // Check if circuit breaker is active before running queue worker
     if (\Illuminate\Support\Facades\Cache::get('sre_circuit_breaker_portal_down') === true) {
         @unlink($lockFile);
@@ -104,9 +108,6 @@ try {
         header('Content-Type: text/plain');
         die('[' . date('Y-m-d H:i:s') . '] Circuit breaker active. Queue worker execution deferred.' . PHP_EOL);
     }
-
-    /** @var \Illuminate\Contracts\Console\Kernel $kernel */
-    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
     // Capture output of the Artisan command run
     $output = new \Symfony\Component\Console\Output\BufferedOutput();
