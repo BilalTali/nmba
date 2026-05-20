@@ -12,16 +12,23 @@ class PortalHealthService
 {
     protected string $loginUrl;
     protected int $timeout = 5;
+    protected float $lastResponseTime = 0.0;
 
     public function __construct()
     {
         $this->loginUrl = rtrim((string) config('services.portal.url'), '/') . '/login';
     }
 
+    public function getLastResponseTime(): float
+    {
+        return $this->lastResponseTime;
+    }
+
     public function isAlive(bool $bypassCache = false): bool
     {
         // If the circuit breaker is already tripped, skip the probe entirely unless bypassed.
         if (!$bypassCache && Cache::get('sre_circuit_breaker_portal_down') === true) {
+            $this->lastResponseTime = (float) $this->timeout;
             return false;
         }
 
@@ -31,8 +38,10 @@ class PortalHealthService
             'allow_redirects' => true,
         ]);
 
+        $startTime = microtime(true);
         try {
             $response = $client->get($this->loginUrl);
+            $this->lastResponseTime = microtime(true) - $startTime;
 
             if ($response->getStatusCode() !== 200) {
                 if (!$bypassCache) {
@@ -67,6 +76,7 @@ class PortalHealthService
             return true;
 
         } catch (Exception $e) {
+            $this->lastResponseTime = microtime(true) - $startTime;
             if (!$bypassCache) {
                 $this->tripCircuitBreaker($e->getMessage());
             }

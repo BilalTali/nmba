@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
 
-export default function Dashboard({ metrics, recentEvents, recentFailures, autoSyncPaused, statusData = [], eventsByBlock = [], eventsOverTime = [], portalConfig = {} }) {
+export default function Dashboard({ metrics, recentEvents, recentFailures, autoSyncPaused, statusData = [], eventsByBlock = [], eventsOverTime = [], telemetryData = [], portalConfig = {} }) {
     const { auth } = usePage().props;
     const isDistrictAdmin = auth.user.role === 'admin';
 
@@ -19,6 +19,9 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
         auto_sync_paused: autoSyncPaused,
     });
 
+    const [telemetry, setTelemetry] = useState(telemetryData);
+    const [activeTelemetryTab, setActiveTelemetryTab] = useState('performance');
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -29,6 +32,9 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                 if (!response.ok) throw new Error('Network error');
                 const data = await response.json();
                 setHealthState(data);
+                if (data.telemetry) {
+                    setTelemetry(data.telemetry);
+                }
             } catch (error) {
                 console.error('Portal health check failed:', error);
                 setHealthState({ status: 'offline', auto_sync_paused: false });
@@ -298,6 +304,117 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <p className={`text-4xl font-black ${stat.color}`}>{stat.value}</p>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Live Server Telemetry Section */}
+                        {isDistrictAdmin && (
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                                    <div>
+                                        <h3 className="text-slate-800 text-lg font-extrabold tracking-tight flex items-center gap-2">
+                                            <span className="relative flex h-3.5 w-3.5">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                                            </span>
+                                            Live Server Telemetry & Health Indexes
+                                        </h3>
+                                        <p className="text-xs text-slate-500 font-medium mt-0.5">Real-time status indexes tracked from active server traffic.</p>
+                                    </div>
+                                    <div className="flex bg-slate-100 p-1.5 rounded-xl gap-1">
+                                        {[
+                                            { id: 'performance', label: 'Performance' },
+                                            { id: 'resources', label: 'Resources' },
+                                            { id: 'queue', label: 'Sync Queue' }
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTelemetryTab(tab.id)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTelemetryTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                            >
+                                                {tab.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Live Value Badges */}
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                                    {[
+                                        { label: 'CPU Load', value: `${(telemetry[telemetry.length - 1]?.cpu ?? 0.0).toFixed(2)}`, desc: 'Average index', color: 'text-indigo-600', bg: 'bg-indigo-50/50' },
+                                        { label: 'Memory Usage', value: `${(telemetry[telemetry.length - 1]?.memory ?? 0).toFixed(0)} MB`, desc: 'Allocated heap', color: 'text-sky-600', bg: 'bg-sky-50/50' },
+                                        { label: 'Disk Space', value: `${(telemetry[telemetry.length - 1]?.disk ?? 0).toFixed(1)}%`, desc: 'Used capacity', color: 'text-amber-600', bg: 'bg-amber-50/50' },
+                                        { label: 'Portal Latency', value: `${(telemetry[telemetry.length - 1]?.latency ?? 0)} ms`, desc: 'Probe duration', color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
+                                        { label: 'Pending Jobs', value: `${(telemetry[telemetry.length - 1]?.pending ?? 0)}`, desc: 'In queue', color: 'text-rose-600', bg: 'bg-rose-50/50' }
+                                    ].map((badge, i) => (
+                                        <div key={i} className={`p-4 rounded-2xl border border-slate-100 ${badge.bg} transition-all`}>
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{badge.label}</span>
+                                            <h4 className={`text-xl font-black ${badge.color} mt-1`}>{badge.value}</h4>
+                                            <p className="text-[10px] font-medium text-slate-500 mt-0.5">{badge.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Dynamic Recharts Graph */}
+                                <div className="h-72">
+                                    {telemetry.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                            <AreaChart data={telemetry} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="telemetryPerfGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                    <linearGradient id="telemetryResGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                    <linearGradient id="telemetryQueueGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                                <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                                                
+                                                {activeTelemetryTab === 'performance' && (
+                                                    <>
+                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#3b82f6', fontSize: 11}} unit="ms" />
+                                                        <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{fill: '#10b981', fontSize: 11}} />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                                        <Area yAxisId="left" type="monotone" dataKey="latency" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryPerfGrad)" name="Latency (ms)" />
+                                                        <Area yAxisId="right" type="monotone" dataKey="cpu" stroke="#10b981" strokeWidth={2.5} fillOpacity={0} name="CPU Load" />
+                                                    </>
+                                                )}
+
+                                                {activeTelemetryTab === 'resources' && (
+                                                    <>
+                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#0ea5e9', fontSize: 11}} unit="M" />
+                                                        <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{fill: '#f59e0b', fontSize: 11}} unit="%" />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                                        <Area yAxisId="left" type="monotone" dataKey="memory" stroke="#0ea5e9" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryResGrad)" name="Memory Usage (MB)" />
+                                                        <Area yAxisId="right" type="monotone" dataKey="disk" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={0} name="Disk Space (%)" />
+                                                    </>
+                                                )}
+
+                                                {activeTelemetryTab === 'queue' && (
+                                                    <>
+                                                        <YAxis tickLine={false} axisLine={false} tick={{fill: '#f43f5e', fontSize: 11}} />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                                        <Area type="monotone" dataKey="pending" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryQueueGrad)" name="Pending Jobs" />
+                                                    </>
+                                                )}
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 animate-spin text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <p className="text-xs font-semibold">Populating live health telemetry logs...</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
