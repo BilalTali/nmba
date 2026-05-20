@@ -932,35 +932,39 @@ class EventController extends Controller
         if (file_exists($logPath)) {
             $content = file_get_contents($logPath);
             $rawLines = explode("\n", trim($content));
-            $lastLines = array_slice($rawLines, -300); // Take last 300 lines
             
-            foreach ($lastLines as $line) {
+            foreach ($rawLines as $line) {
                 if (empty(trim($line))) continue;
                 
                 // Parse Laravel log format: [YYYY-MM-DD HH:MM:SS] env.LEVEL: Message {"context"}
                 if (preg_match('/^\[(.*?)\] (.*?)\.(.*?): (.*)$/', $line, $matches)) {
-                    $timestamp = $matches[1];
+                    // Convert UTC timestamp from log file to IST for display
+                    $utcTime = $matches[1];
+                    try {
+                        $timestamp = \Illuminate\Support\Carbon::createFromFormat('Y-m-d H:i:s', $utcTime, 'UTC')
+                            ->timezone('Asia/Kolkata')
+                            ->format('Y-m-d H:i:s');
+                    } catch (\Exception $e) {
+                        $timestamp = $utcTime;
+                    }
+                    
                     $level = $matches[3];
                     $rest = $matches[4];
-                    $context = null;
-                    $message = $rest;
                     
                     $parsedLogs[] = [
                         'timestamp' => $timestamp,
                         'level' => strtoupper($level),
-                        'message' => $message,
-                        'context' => $context,
-                        'raw' => $line
-                    ];
-                } else {
-                    $parsedLogs[] = [
-                        'timestamp' => null,
-                        'level' => 'INFO',
-                        'message' => $line,
+                        'message' => $rest,
                         'context' => null,
                         'raw' => $line
                     ];
                 }
+                // We skip stack trace lines (no timestamp match) so they don't flood the view
+            }
+            
+            // Now that we have actual log entries, keep only the last 300
+            if (count($parsedLogs) > 300) {
+                $parsedLogs = array_slice($parsedLogs, -300);
             }
         }
 
