@@ -30,5 +30,15 @@ class RolesAndUsersSeeder extends Seeder
                 'password' => 'Welcome@123',
             ]
         );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'blockbudgam@gmail.com'],
+            [
+                'name' => 'BLOCK BUDGAM',
+                'role' => 'block_worker',
+                'block_id' => 14, // Badgam block
+                'password' => 'Welcome@123',
+            ]
+        );
     }
 }
