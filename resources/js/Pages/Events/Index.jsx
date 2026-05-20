@@ -182,8 +182,8 @@ export default function Index({ events, blocks, filters }) {
                     ) : (
                         <div className="space-y-6">
                             {/* Desktop Tabular List View */}
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hidden lg:block">
-                                <table className="w-full text-left border-collapse">
+                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-x-auto hidden lg:block">
+                                <table className="w-full min-w-[1200px] text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50 border-b border-slate-200">
                                             <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-slate-500 w-16">ID</th>
