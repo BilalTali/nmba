@@ -15,7 +15,7 @@ set -e
 SSH_HOST="92.249.46.36"
 SSH_PORT="65002"
 SSH_USER="u335000182"
-SSH_PASS="Sugen@9313"
+SSH_PASS="${SSH_PASS:-Sugen@9313}"
 APP_DIR="/home/u335000182/domains/nmbabudgam.in/nmbaagent"
 PHP="/usr/bin/php"
 
@@ -52,7 +52,7 @@ remote "echo 'SSH OK'" >/dev/null && ok "SSH connection established." || fail "C
 # STEP 2 — Pull latest code from GitHub
 log "Step 2/10 — Pulling latest code from GitHub..."
 remote "cd $APP_DIR && git pull origin main 2>&1"
-remote "cp $APP_DIR/public_html/nmba-cron.php $APP_DIR/../public_html/nmba-cron.php"
+remote "mkdir -p $APP_DIR/../public_html && cp $APP_DIR/public_html/nmba-cron.php $APP_DIR/../public_html/nmba-cron.php"
 ok "Code updated."
 
 # STEP 3 — Install Composer production dependencies
@@ -84,7 +84,7 @@ ok "Cache evicted — fresh metrics will appear on next dashboard load."
 
 # STEP 8 — Flush failed jobs and restart queue
 log "Step 8/10 — Flushing failed job table and restarting queue signal..."
-remote_artisan "queue:flush  2>&1"
+remote_artisan "queue:flush  2>&1 || true"
 remote_artisan "queue:restart 2>&1"
 ok "Failed jobs flushed. Queue workers will restart on next cron tick."
 
@@ -102,14 +102,19 @@ if [ "$HAS_CRONTAB" = "yes" ]; then
     "
     ok "Cron scheduler and queue worker registered in system crontab."
 else
+    # Extract the token dynamically from the remote .env to provide the exact URL
+    REMOTE_TOKEN=$(remote "grep '^CRON_TOKEN=' $APP_DIR/.env | cut -d'=' -f2 | tr -d '\"'\'' '" 2>/dev/null || echo "")
+    if [ -z "$REMOTE_TOKEN" ]; then
+        REMOTE_TOKEN="YOUR_CRON_TOKEN"
+    fi
     warn "crontab utility not available on this server (standard for Hostinger Shared hosting)."
     warn "Please ensure you have configured the following cron jobs in the Hostinger hPanel control panel UI:"
     warn "  1. Scheduler Command (every minute):"
     warn "     * * * * * $PHP $APP_DIR/artisan schedule:run >> /dev/null 2>&1"
     warn "  2. Web Cron Trigger 1 (every 5 mins):"
-    warn "     */5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=YOUR_CRON_TOKEN\" > /dev/null 2>&1"
+    warn "     */5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=$REMOTE_TOKEN\" > /dev/null 2>&1"
     warn "  3. Web Cron Trigger 2 (every 5 mins, offset by 2 mins):"
-    warn "     2-57/5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=YOUR_CRON_TOKEN\" > /dev/null 2>&1"
+    warn "     2-57/5 * * * * curl -s \"https://nmbabudgam.in/nmba-cron.php?token=$REMOTE_TOKEN\" > /dev/null 2>&1"
 fi
 
 # STEP 10 — Final health check

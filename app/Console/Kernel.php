@@ -28,8 +28,13 @@ class Kernel extends ConsoleKernel
 
             // --- Guard 2: Queue flood protection ---
             try {
-                if (Queue::size('default') > 100) {
-                    Log::channel('sync')->warning('Scheduler skipped — queue backlog exceeds 100 entries.');
+                $readyJobs = \Illuminate\Support\Facades\DB::table('jobs')
+                    ->where('queue', 'default')
+                    ->whereNull('reserved_at')
+                    ->where('available_at', '<=', now()->getTimestamp())
+                    ->count();
+                if ($readyJobs > 100) {
+                    Log::channel('sync')->warning('Scheduler skipped — ready queue backlog exceeds 100 entries.', ['ready_jobs' => $readyJobs]);
                     return;
                 }
             } catch (\Exception $e) {

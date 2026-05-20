@@ -763,24 +763,62 @@ class EventController extends Controller
         return back()->with('success', "Successfully purged {$deletedCount} media files from synced events.");
     }
 
-    public function viewSyncLogs(): \Symfony\Component\HttpFoundation\Response
+    public function viewSyncLogs()
     {
         // Use app timezone (Asia/Kolkata) so the date matches the log filename at all hours.
         // Using UTC would pick the wrong date between midnight IST and midnight UTC (00:00-05:30 IST).
         $logPath = storage_path('logs/sync-' . now(config('app.timezone'))->format('Y-m-d') . '.log');
+        
+        $parsedLogs = [];
+        
         if (!file_exists($logPath)) {
             $files = glob(storage_path('logs/sync-*.log'));
             if (!empty($files)) {
                 $logPath = end($files);
-            } else {
-                return response('No sync logs found.', 200, ['Content-Type' => 'text/plain']);
             }
         }
         
-        $content = file_get_contents($logPath);
-        $lines = explode("\n", $content);
-        $lastLines = array_slice($lines, -300);
-        return response(implode("\n", $lastLines), 200, ['Content-Type' => 'text/plain']);
+        if (file_exists($logPath)) {
+            $content = file_get_contents($logPath);
+            $rawLines = explode("\n", trim($content));
+            $lastLines = array_slice($rawLines, -300); // Take last 300 lines
+            
+            foreach ($lastLines as $line) {
+                if (empty(trim($line))) continue;
+                
+                // Parse Laravel log format: [YYYY-MM-DD HH:MM:SS] env.LEVEL: Message {"context"}
+                if (preg_match('/^\[(.*?)\] (.*?)\.(.*?): (.*)$/', $line, $matches)) {
+                    $timestamp = $matches[1];
+                    $level = $matches[3];
+                    $rest = $matches[4];
+                    $context = null;
+                    $message = $rest;
+                    
+                    $parsedLogs[] = [
+                        'timestamp' => $timestamp,
+                        'level' => strtoupper($level),
+                        'message' => $message,
+                        'context' => $context,
+                        'raw' => $line
+                    ];
+                } else {
+                    $parsedLogs[] = [
+                        'timestamp' => null,
+                        'level' => 'INFO',
+                        'message' => $line,
+                        'context' => null,
+                        'raw' => $line
+                    ];
+                }
+            }
+        }
+
+        // Reverse to show latest on top
+        $parsedLogs = array_reverse($parsedLogs);
+
+        return \Inertia\Inertia::render('Admin/Logs/Sync', [
+            'logs' => $parsedLogs
+        ]);
     }
 
     public function viewAuditLogs(): \Symfony\Component\HttpFoundation\Response
