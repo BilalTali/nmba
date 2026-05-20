@@ -271,9 +271,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                     </a>
 
                                     <a
-                                        href="https://hpanel.hostinger.com/hosting/nmbabudgam.in/analytics"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        href="#server-telemetry"
                                         className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
                                     >
                                         <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 group-hover:bg-slate-300 transition-colors">
@@ -283,7 +281,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-bold text-slate-800">Traffic & Server</h4>
-                                            <p className="text-xs text-slate-500">Hostinger hPanel stats</p>
+                                            <p className="text-xs text-slate-500">Live telemetry graphs</p>
                                         </div>
                                     </a>
                                 </div>
@@ -309,7 +307,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                         {/* Live Server Telemetry Section */}
                         {isDistrictAdmin && (
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                            <div id="server-telemetry" className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6 scroll-mt-6">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                                     <div>
                                         <h3 className="text-slate-800 text-lg font-extrabold tracking-tight flex items-center gap-2">
