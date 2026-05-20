@@ -271,7 +271,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                     </a>
 
                                     <a
-                                        href="https://hpanel.hostinger.com"
+                                        href="https://hpanel.hostinger.com/hosting/nmbabudgam.in/analytics"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
