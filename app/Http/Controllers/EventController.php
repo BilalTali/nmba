@@ -326,10 +326,19 @@ class EventController extends Controller
 
         try {
             // Reset all delayed job timers so the running daemon picks them up immediately.
-            DB::table('jobs')->update([
-                'available_at' => time(),
-                'reserved_at'  => null,
-            ]);
+            try {
+                if (config('queue.default') === 'database' && \Illuminate\Support\Facades\Schema::hasTable('jobs')) {
+                    DB::table('jobs')->update([
+                        'available_at' => time(),
+                        'reserved_at'  => null,
+                    ]);
+                }
+            } catch (\Throwable $jobEx) {
+                Log::channel('sync')->warning('Could not reset delayed jobs in forceSync: ' . $jobEx->getMessage());
+            }
+
+            // Clear the circuit breaker so sync attempts can proceed immediately.
+            Cache::forget('sre_circuit_breaker_portal_down');
 
             // Unlock manual override and re-dispatch all pending events.
             // Uses chunk() to safely handle large datasets without memory exhaustion.
@@ -386,12 +395,22 @@ class EventController extends Controller
 
         if (!$isPaused) {
             // Reset any delayed retry timers so the running queue daemon picks jobs up immediately.
-            $hasDelayedJobs = DB::table('jobs')->where('available_at', '>', time())->exists();
+            $hasDelayedJobs = false;
+            try {
+                if (config('queue.default') === 'database' && \Illuminate\Support\Facades\Schema::hasTable('jobs')) {
+                    $hasDelayedJobs = DB::table('jobs')->where('available_at', '>', time())->exists();
+                    if ($hasDelayedJobs) {
+                        DB::table('jobs')->update([
+                            'available_at' => time(),
+                            'reserved_at'  => null,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $jobEx) {
+                Log::channel('sync')->warning('Could not check or reset delayed jobs in checkPortalHealth: ' . $jobEx->getMessage());
+            }
+
             if ($hasDelayedJobs) {
-                DB::table('jobs')->update([
-                    'available_at' => time(),
-                    'reserved_at'  => null,
-                ]);
                 $triggeredSync = true;
             }
 
@@ -469,6 +488,9 @@ class EventController extends Controller
             'last_error_log'  => null,
         ]);
 
+        // Clear the circuit breaker so sync attempts can proceed immediately.
+        Cache::forget('sre_circuit_breaker_portal_down');
+
         // 2. Dispatch a fresh job — the persistent queue daemon will process it immediately.
         dispatch(new SyncEventJob($event));
 
@@ -502,6 +524,11 @@ class EventController extends Controller
      */
     private function ensurePendingEventsAreQueued(): void
     {
+        // If queue default is 'sync', doing this on page load/poll is dangerous as it will execute them all synchronously and block the request.
+        if (config('queue.default') === 'sync') {
+            return;
+        }
+
         // Only fetch pending events that are NOT manually locked/overridden
         /** @var \App\Models\Event[] $pendingEvents */
         $pendingEvents = Event::where('sync_status', 'pending')
@@ -524,6 +551,11 @@ class EventController extends Controller
      */
     private function runQueueWorkerInBackground(): void
     {
+        // If queue driver is 'sync', running a background queue worker is completely unnecessary and disallowed.
+        if (config('queue.default') === 'sync') {
+            return;
+        }
+
         $artisanPath = base_path('artisan');
         $phpBinary = PHP_BINARY;
 
@@ -540,10 +572,22 @@ class EventController extends Controller
 
         $command = escapeshellarg($phpBinary) . ' ' . escapeshellarg($artisanPath) . ' queue:work database --max-jobs=10 --tries=10 --timeout=110';
 
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            pclose(popen("start /B " . $command, "r"));
-        } else {
-            exec($command . " > /dev/null 2>&1 &");
+        try {
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                if (function_exists('popen')) {
+                    pclose(popen("start /B " . $command, "r"));
+                } else {
+                    Log::channel('sync')->warning('popen is disabled. Background queue worker could not be started.');
+                }
+            } else {
+                if (function_exists('exec')) {
+                    exec($command . " > /dev/null 2>&1 &");
+                } else {
+                    Log::channel('sync')->warning('exec is disabled. Background queue worker could not be started.');
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::channel('sync')->error('Failed to run queue worker in background: ' . $e->getMessage());
         }
     }
 

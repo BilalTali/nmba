@@ -39,6 +39,7 @@ class SyncEventJob implements ShouldQueue
 
     public function __construct(protected Event $event)
     {
+        $this->connection = 'database';
         $this->queue = 'default';
     }
 
@@ -54,8 +55,8 @@ class SyncEventJob implements ShouldQueue
     {
         // Pre-flight guard: synchronous queue driver breaks async constraints.
         if (config('queue.default') === 'sync') {
-            throw new \RuntimeException(
-                'Synchronous queue driver is disallowed for NMBA background sync operations.'
+            Log::channel('sync')->warning(
+                'Synchronous queue driver is active for NMBA background sync operation. Execution bypasses standard database backgrounding.'
             );
         }
 
