@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Exceptions\PermanentSyncException;
 use App\Exceptions\TransientSyncException;
 use App\Models\Event;
+use App\Models\EventSyncLog;
 use App\Services\Contracts\PortalSyncInterface;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -106,6 +107,9 @@ class SyncEventJob implements ShouldQueue
             if ($success) {
                 $this->event->markSynced();
 
+                // Audit log: record successful sync attempt
+                $this->writeSyncLog('success', null, null);
+
                 // Post-sync media management: move files to 'events/synced' folder so they can be deleted later via frontend
                 $newPaths = [];
                 foreach ($storedPaths as $path) {
@@ -130,6 +134,8 @@ class SyncEventJob implements ShouldQueue
                     'duration_ms' => $durationMs,
                 ]);
             } else {
+                // Audit log: record failed attempt before throwing
+                $this->writeSyncLog('failure', null, 'Sync service returned false — portal did not confirm submission.');
                 throw new TransientSyncException(
                     'Sync service returned false — portal did not confirm submission.'
                 );
@@ -148,6 +154,9 @@ class SyncEventJob implements ShouldQueue
 
     protected function handleAuthFailure(string $errorMessage): void
     {
+        // Audit log: record auth failure
+        $this->writeSyncLog('failure', null, $errorMessage);
+
         $this->event->markFailed($errorMessage);
         // Reset sync status back to pending instead of keeping it in transient retry loop
         Event::where('id', $this->event->id)->update(['sync_status' => 'pending']);
@@ -169,6 +178,9 @@ class SyncEventJob implements ShouldQueue
      */
     protected function handleTransientFailure(string $errorMessage): void
     {
+        // Audit log: record transient failure before computing backoff
+        $this->writeSyncLog('failure', null, $errorMessage);
+
         $this->event->refresh();
         $attempts = $this->event->sync_attempts;
 
@@ -204,6 +216,9 @@ class SyncEventJob implements ShouldQueue
      */
     protected function handlePermanentFailure(string $errorMessage): void
     {
+        // Audit log: record permanent failure
+        $this->writeSyncLog('permanent_failure', null, $errorMessage);
+
         $this->event->markFailedPermanently($errorMessage);
 
         Log::channel('sync')->error('PERMANENT FAILURE: Event dead-lettered.', [
@@ -215,5 +230,38 @@ class SyncEventJob implements ShouldQueue
         ]);
 
         $this->delete();
+    }
+
+    /**
+     * FIX-OPS-02: Write one row to event_sync_logs after every API call attempt.
+     *
+     * @param string $outcome  'success' | 'failure' | 'permanent_failure'
+     * @param int|null $httpStatusCode  Portal HTTP response code (null if connection failed)
+     * @param string|null $responseSnippet  First 500 chars of response body
+     */
+    protected function writeSyncLog(
+        string $outcome,
+        ?int $httpStatusCode,
+        ?string $responseSnippet
+    ): void {
+        try {
+            EventSyncLog::create([
+                'event_id'             => $this->event->id,
+                'attempted_at'         => now(),
+                'attempt_number'       => $this->event->sync_attempts,
+                'http_status_code'     => $httpStatusCode,
+                'api_response_snippet' => $responseSnippet
+                    ? mb_substr($responseSnippet, 0, 500)
+                    : null,
+                'outcome'              => $outcome,
+                'worker_pid'           => getmypid() ?: null,
+            ]);
+        } catch (\Exception $e) {
+            // Audit logging must never break the job itself
+            Log::channel('sync')->warning('Failed to write sync log entry.', [
+                'event_id' => $this->event->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
     }
 }

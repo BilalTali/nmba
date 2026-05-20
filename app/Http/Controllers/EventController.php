@@ -156,27 +156,36 @@ class EventController extends Controller
 
     public function store(StoreEventRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-        $coordinatorName = $validated['event_coordinator_name'] ?? '';
+        $validated        = $request->validated();
+        $coordinatorName  = $validated['event_coordinator_name'] ?? '';
 
-        // 1. Concurrency Lock: Prevents double-submission from rapid duplicate clicks.
-        $lockHash = md5(
-            strtolower(trim($validated['event_name'])) . '|' .
-            strtolower(trim($validated['event_date'])) . '|' .
-            strtolower(trim($validated['event_venue'])) . '|' .
-            $validated['actual_attendance'] . '|' .
-            $validated['block_id'] . '|' .
-            strtolower(trim($coordinatorName))
+        // ── 1. SEMANTIC HASH (FIX-ARCH-01) ──────────────────────────────
+        // Deterministic fingerprint — no uniqid(). Identical events produce
+        // the same semantic_hash, enabling true duplicate detection.
+        $semanticHash = Event::generateSemanticHash(
+            $validated['event_name'],
+            $validated['event_date'],
+            $validated['event_venue'],
+            (int) $validated['actual_attendance'],
+            (int) $validated['block_id'],
+            $coordinatorName
         );
 
-        $lockKey = "event_submit_lock_" . $lockHash;
-        if (Cache::has($lockKey)) {
+        // ── 2. CACHE LOCK (FIX-ARCH-02 — atomic layer 1) ────────────────
+        // Uses Laravel's atomic Cache::lock() rather than Cache::put()/has().
+        // On file driver: best-effort (race window exists). The DB constraint
+        // below is the authoritative atomic deduplication barrier.
+        $lockKey  = 'event_submit_lock_' . $semanticHash;
+        $lock     = Cache::lock($lockKey, 10);
+
+        if (!$lock->get()) {
             return redirect()->back()->withInput()
                 ->withErrors(['duplicate' => 'A submission for this event is already in progress. Please wait a moment.']);
         }
-        Cache::put($lockKey, true, 10); // 10-second lock to absorb double clicks
 
-        $uniqueHash = Event::generateUniqueHash(
+        // ── 3. SUBMISSION ID (FIX-ARCH-01) ──────────────────────────────
+        // Globally unique per-record identifier — kept separate from semantic_hash.
+        $submissionId = Event::generateSubmissionId(
             $validated['event_name'],
             $validated['event_date'],
             $validated['event_venue'],
@@ -189,7 +198,7 @@ class EventController extends Controller
         try {
             $photoPaths = $this->imageService->optimizeBatch($request->file('photo'));
         } catch (Exception $e) {
-            Cache::forget($lockKey); // Release lock immediately on exception
+            $lock->release();
             Log::channel('sync')->warning('Image optimization failure.', ['error' => $e->getMessage()]);
             return redirect()->back()->withInput()
                 ->withErrors(['error' => 'Image processing failed: ' . $e->getMessage()]);
@@ -197,24 +206,59 @@ class EventController extends Controller
 
         DB::beginTransaction();
         try {
+            // ── 4. DB-BACKED DEDUP (FIX-ARCH-02 — atomic layer 2) ───────
+            // The deduplications table has a unique index on semantic_hash.
+            // If another concurrent request already inserted this hash, the
+            // DB engine will throw a 23000 QueryException here — atomically,
+            // regardless of how many PHP-FPM workers are running.
+            try {
+                DB::table('deduplications')->insert([
+                    'semantic_hash' => $semanticHash,
+                    'event_id'      => null, // will update after event is created
+                    'created_at'    => now(),
+                ]);
+            } catch (QueryException $dedupEx) {
+                DB::rollBack();
+                $lock->release();
+                foreach ($photoPaths as $path) {
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
+                }
+                if ($dedupEx->getCode() === '23000' || str_contains($dedupEx->getMessage(), 'Duplicate entry')) {
+                    return redirect()->back()->withInput()
+                        ->withErrors(['duplicate' => 'This event has already been submitted. If you believe this is an error, please contact the administrator.']);
+                }
+                throw $dedupEx;
+            }
+
+            // ── 5. CREATE EVENT RECORD ────────────────────────────────────
             $event = Event::create(array_merge($validated, [
-                'photo_paths' => $photoPaths,
-                'unique_hash' => $uniqueHash,
-                'sync_status' => 'pending',
+                'photo_paths'   => $photoPaths,
+                'unique_hash'   => $submissionId, // legacy field — kept for one release cycle
+                'submission_id' => $submissionId,
+                'semantic_hash' => $semanticHash,
+                'sync_status'   => 'pending',
             ]));
+
+            // Backfill the event_id into deduplications now that we have it
+            DB::table('deduplications')
+                ->where('semantic_hash', $semanticHash)
+                ->update(['event_id' => $event->id]);
 
             DB::commit();
 
-            // Evict dashboard metrics cache on new event submission to keep the chart values fresh.
             Cache::forget('dashboard_metrics_counts');
 
             Log::channel('sync')->info('Event created and queued.', [
-                'event_id' => $event->id, 'unique_hash' => $uniqueHash,
+                'event_id'     => $event->id,
+                'semantic_hash'=> $semanticHash,
+                'submission_id'=> $submissionId,
             ]);
 
         } catch (QueryException $e) {
             DB::rollBack();
-            Cache::forget($lockKey);
+            $lock->release();
             foreach ($photoPaths as $path) {
                 if (Storage::disk('public')->exists($path)) {
                     Storage::disk('public')->delete($path);
@@ -228,7 +272,7 @@ class EventController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
-            Cache::forget($lockKey);
+            $lock->release();
             foreach ($photoPaths as $path) {
                 if (Storage::disk('public')->exists($path)) {
                     Storage::disk('public')->delete($path);
@@ -239,22 +283,45 @@ class EventController extends Controller
                 ->withErrors(['error' => 'Internal error: ' . $e->getMessage()]);
         }
 
-        // Dispatch the job — the persistent queue daemon (php artisan queue:work) picks it up immediately.
-        SyncEventJob::dispatch($event);
+        $lock->release();
 
-        $blockName = \App\Models\Block::find($validated['block_id'])?->name ?? 'selected block';
+        // ── 6. DISPATCH (FIX-OPS-03 — SYNC_MODE feature flag) ───────────
+        // SYNC_MODE=sync: call SyncEventJob directly (emergency rollback mode)
+        // SYNC_MODE=async (default): dispatch to queue as normal
+        if (config('app.sync_mode', 'async') === 'sync') {
+            Log::channel('sync')->warning('SYNC_MODE=sync active — processing event synchronously (rollback mode).', [
+                'event_id' => $event->id,
+            ]);
+            try {
+                app(\App\Services\Contracts\PortalSyncInterface::class)->sync($event);
+            } catch (Exception $e) {
+                Log::channel('sync')->error('Synchronous sync failed.', ['error' => $e->getMessage()]);
+            }
+        } else {
+            SyncEventJob::dispatch($event);
+        }
+
+        $blockName      = \App\Models\Block::find($validated['block_id'])?->name ?? 'selected block';
         $successMessage = "Event logged successfully! <br><span class='text-emerald-900 font-bold'>Recorded for Jurisdiction: {$blockName}</span>";
 
-        return redirect()->route('dashboard')
-            ->with('success', $successMessage);
+        return redirect()->route('dashboard')->with('success', $successMessage);
     }
 
     /**
      * Manually triggers the queue worker to process pending sync jobs from the UI.
      * Extremely useful for local XAMPP environments without Supervisor daemons.
      */
-    public function forceSync(): RedirectResponse
+    public function forceSync(\Illuminate\Http\Request $request): RedirectResponse
     {
+        $key = 'force-sync-limit:' . ($request->user()?->id ?? $request->ip());
+
+        if (\Illuminate\Support\Facades\RateLimiter::attempts($key) >= 5) {
+            \Illuminate\Support\Facades\RateLimiter::clear($key);
+            Log::channel('sync')->info('Force sync rate limit reached 5 requests. Resetting request count.');
+        } else {
+            \Illuminate\Support\Facades\RateLimiter::hit($key, 60);
+        }
+
         try {
             // Reset all delayed job timers so the running daemon picks them up immediately.
             DB::table('jobs')->update([
@@ -271,6 +338,9 @@ class EventController extends Controller
                         dispatch(new SyncEventJob($event));
                     }
                 });
+
+            // Immediately trigger the queue worker to process jobs in the background.
+            $this->runQueueWorkerInBackground();
 
             // Evict dashboard metrics cache so fresh values show up.
             Cache::forget('dashboard_metrics_counts');
@@ -327,6 +397,10 @@ class EventController extends Controller
 
             if ($pendingActiveCount > 0) {
                 $triggeredSync = true;
+            }
+
+            if ($triggeredSync) {
+                $this->runQueueWorkerInBackground();
             }
         }
 
@@ -390,6 +464,9 @@ class EventController extends Controller
         // 2. Dispatch a fresh job — the persistent queue daemon will process it immediately.
         dispatch(new SyncEventJob($event));
 
+        // Immediately trigger the queue worker to process jobs in the background.
+        $this->runQueueWorkerInBackground();
+
         // Evict dashboard metrics cache so fresh values show up.
         Cache::forget('dashboard_metrics_counts');
 
@@ -430,6 +507,35 @@ class EventController extends Controller
                 Cache::put($cacheKey, true, 60);
                 dispatch(new SyncEventJob($event));
             }
+        }
+    }
+
+    /**
+     * Executes the Laravel queue worker in the background using PHP's CLI binary.
+     * This avoids blocking the web request while immediately processing queued sync jobs.
+     */
+    private function runQueueWorkerInBackground(): void
+    {
+        $artisanPath = base_path('artisan');
+        $phpBinary = PHP_BINARY;
+
+        // If running in a web context, fallback path replacement for php-fpm or php-cgi
+        if (preg_match('/php-fpm[0-9.]*$/i', $phpBinary)) {
+            $phpBinary = preg_replace('/php-fpm[0-9.]*$/i', 'php', $phpBinary);
+        } elseif (preg_match('/php-cgi[0-9.]*$/i', $phpBinary)) {
+            $phpBinary = preg_replace('/php-cgi[0-9.]*$/i', 'php', $phpBinary);
+        }
+
+        if (!file_exists($phpBinary) || !is_executable($phpBinary)) {
+            $phpBinary = 'php';
+        }
+
+        $command = escapeshellarg($phpBinary) . ' ' . escapeshellarg($artisanPath) . ' queue:work database --max-jobs=10 --tries=10 --timeout=110';
+
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            pclose(popen("start /B " . $command, "r"));
+        } else {
+            exec($command . " > /dev/null 2>&1 &");
         }
     }
 

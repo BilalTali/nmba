@@ -96,6 +96,21 @@ class Kernel extends ConsoleKernel
             }
 
         })->everyFiveMinutes()->name('nmba_sync_orchestration_sweep')->withoutOverlapping();
+
+        // FIX-OPS-01: Alert if events are stuck in pending for over 30 minutes.
+        // Runs every 15 minutes. Sends email to ADMIN_EMAIL and writes to sync-health.log.
+        $schedule->command('sync:health-check')
+            ->everyFifteenMinutes()
+            ->name('nmba_sync_health_check')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/sync-health.log'));
+
+        // FIX-SEC-02: Weekly portal credential validation.
+        // Tests actual authentication and writes to credential-checks.log.
+        $schedule->command('portal:check-credentials', ['--quiet-on-success'])
+            ->weekly()
+            ->name('nmba_portal_credential_check')
+            ->appendOutputTo(storage_path('logs/credential-checks.log'));
     }
 
     /**

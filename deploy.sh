@@ -46,54 +46,61 @@ echo -e "\e[0m"
 # ================================================================
 
 # STEP 1 — Verify SSH connectivity
-log "Step 1/9 — Verifying server connectivity..."
+log "Step 1/10 — Verifying server connectivity..."
 remote "echo 'SSH OK'" >/dev/null && ok "SSH connection established." || fail "Cannot connect to server!"
 
 # STEP 2 — Pull latest code from GitHub
-log "Step 2/9 — Pulling latest code from GitHub..."
+log "Step 2/10 — Pulling latest code from GitHub..."
 remote "cd $APP_DIR && git pull origin main 2>&1"
 ok "Code updated."
 
 # STEP 3 — Install Composer production dependencies
-log "Step 3/9 — Installing Composer dependencies..."
+log "Step 3/10 — Installing Composer dependencies..."
 remote "cd $APP_DIR && composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5"
 ok "Composer packages installed."
 
 # STEP 4 — Run database migrations
-log "Step 4/9 — Running database migrations..."
+log "Step 4/10 — Running database migrations..."
 remote_artisan "migrate --force 2>&1"
 ok "Migrations applied."
 
-# STEP 5 — Warm up all Laravel caches
-log "Step 5/9 — Warming up Laravel config / route / view caches..."
+# STEP 5 — Run historical hash audit (non-destructive)
+log "Step 5/10 — Scanning database for historical hash corruption..."
+remote_artisan "audit:rehash-events 2>&1"
+ok "Hash audit complete. Report saved to storage/audit/hash-audit-YYYY-MM-DD.log"
+
+# STEP 6 — Warm up all Laravel caches
+log "Step 6/10 — Warming up Laravel config / route / view caches..."
 remote_artisan "config:cache 2>&1"
 remote_artisan "route:cache  2>&1"
 remote_artisan "view:cache   2>&1"
 ok "Application caches warmed."
 
-# STEP 6 — Clear stale dashboard metrics cache
-log "Step 6/9 — Evicting stale dashboard telemetry cache..."
+# STEP 7 — Clear stale dashboard metrics cache
+log "Step 7/10 — Evicting stale dashboard telemetry cache..."
 remote_artisan "cache:clear 2>&1"
 ok "Cache evicted — fresh metrics will appear on next dashboard load."
 
-# STEP 7 — Flush failed jobs and restart queue
-log "Step 7/9 — Flushing failed job table and restarting queue signal..."
+# STEP 8 — Flush failed jobs and restart queue
+log "Step 8/10 — Flushing failed job table and restarting queue signal..."
 remote_artisan "queue:flush  2>&1"
 remote_artisan "queue:restart 2>&1"
 ok "Failed jobs flushed. Queue workers will restart on next cron tick."
 
-# STEP 8 — Setup cron-based queue worker (idempotent — safe to run multiple times)
-log "Step 8/9 — Registering cron-based queue worker (5-min interval)..."
-CRON_CMD="*/5 * * * * $PHP $APP_DIR/artisan queue:work database --once --tries=10 --timeout=120 >> $APP_DIR/storage/logs/cron-worker.log 2>&1"
-# Use a marker comment so we don't add duplicates
-remote "
-  (crontab -l 2>/dev/null | grep -v 'nmbaagent.*queue:work'; echo '# NMBA Queue Worker'; echo '$CRON_CMD') | crontab -
-  crontab -l | grep 'queue:work' && echo 'Cron registered.' || echo 'Cron NOT registered!'
-"
-ok "Cron queue worker registered for every 5 minutes."
+# STEP 9 — Setup cron-based scheduler & queue worker (idempotent — safe to run multiple times)
+log "Step 9/10 — Registering cron-based scheduler & queue worker..."
+CRON_CMD="*/5 * * * * $PHP $APP_DIR/artisan queue:work database --max-jobs=10 --tries=10 --timeout=110 >> $APP_DIR/storage/logs/cron-worker.log 2>&1"
+SCHEDULER_CMD="* * * * * $PHP $APP_DIR/artisan schedule:run >> /dev/null 2>&1"
 
-# STEP 9 — Final health check
-log "Step 9/9 — Running final health probe..."
+# Use marker comments and clean old entries to prevent duplicates
+remote "
+  (crontab -l 2>/dev/null | grep -v 'nmbaagent' | grep -v 'queue:work'; echo '# NMBA Scheduler'; echo '$SCHEDULER_CMD'; echo '# NMBA Queue Worker'; echo '$CRON_CMD') | crontab -
+  crontab -l | grep 'nmbaagent' && echo 'Cron jobs updated.' || echo 'Cron jobs NOT updated!'
+"
+ok "Cron scheduler and queue worker registered."
+
+# STEP 10 — Final health check
+log "Step 10/10 — Running final health probe..."
 STATUS=$(remote "curl -s -o /dev/null -w '%{http_code}' https://nmbabudgam.in/ 2>/dev/null || echo 'unreachable'")
 if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ]; then
     ok "Portal is live! HTTP status: $STATUS"

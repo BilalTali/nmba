@@ -135,4 +135,16 @@ return [
     'district_id'   => env('DISTRICT_ID', 5),
     'district_name' => env('DISTRICT_NAME', 'Budgam'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sync Mode (Emergency Rollback Flag)
+    |--------------------------------------------------------------------------
+    |
+    | Defines how event submissions are synced.
+    | 'async' uses the database queue (default),
+    | 'sync' runs API submission inline (emergency fallback).
+    |
+    */
+    'sync_mode' => env('SYNC_MODE', 'async'),
+
 ];

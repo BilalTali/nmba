@@ -26,6 +26,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $event_coordinator_desig
  * @property array $photo_paths
  * @property string $unique_hash
+ * @property string|null $semantic_hash
+ * @property string|null $submission_id
+ * @property bool $hash_was_corrupted
  * @property string $sync_status
  * @property int $sync_attempts
  * @property \Illuminate\Support\Carbon|null $last_attempt_at
@@ -55,6 +58,9 @@ class Event extends Model
         'event_coordinator_desig',
         'photo_paths',
         'unique_hash',
+        'semantic_hash',
+        'submission_id',
+        'hash_was_corrupted',
         'sync_status',
         'sync_attempts',
         'last_attempt_at',
@@ -62,17 +68,31 @@ class Event extends Model
     ];
 
     protected $casts = [
-        'event_date'       => 'date',
-        'event_category'   => 'array',
-        'target_audience'  => 'array',
-        'age_group'        => 'array',
-        'photo_paths'      => 'array',
-        'actual_attendance'=> 'integer',
-        'block_id'         => 'integer',
-        'district_id'      => 'integer',
-        'sync_attempts'    => 'integer',
-        'last_attempt_at'  => 'datetime',
+        'event_date'         => 'date',
+        'event_category'     => 'array',
+        'target_audience'    => 'array',
+        'age_group'          => 'array',
+        'photo_paths'        => 'array',
+        'actual_attendance'  => 'integer',
+        'block_id'           => 'integer',
+        'district_id'        => 'integer',
+        'sync_attempts'      => 'integer',
+        'last_attempt_at'    => 'datetime',
+        'hash_was_corrupted' => 'boolean',
     ];
+
+    // ── Relationships ─────────────────────────────────────────────
+
+    /**
+     * Per-attempt sync audit log entries for this event.
+     */
+    public function syncLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\EventSyncLog::class, 'event_id')
+                    ->orderBy('attempted_at', 'desc');
+    }
+
+    // ── Query Scopes ──────────────────────────────────────────────
 
     /**
      * Query scope: only pending synchronization records.
@@ -90,12 +110,48 @@ class Event extends Model
         return $query->where('sync_status', 'failed_permanently');
     }
 
+    // ── Hash Generation ───────────────────────────────────────────
+
     /**
-     * Compute a collision-resistant, case-insensitive idempotency token.
-     * Incorporates block_id to prevent global collisions when multiple schools
-     * host overlapping events on the same date with the same headcount.
+     * Generate the SEMANTIC hash — deterministic, collision-resistant deduplication key.
+     *
+     * This hash is computed from real event field values ONLY (no uniqid/random component).
+     * Two submissions with the same event details will produce the same semantic_hash,
+     * which is what enables true duplicate detection.
+     *
+     * Used for:
+     *  - Cache lock key in EventController::store()
+     *  - DB deduplication check (deduplications table + unique index)
+     *  - Backfilling existing records via migration
      */
-    public static function generateUniqueHash(
+    public static function generateSemanticHash(
+        string $name,
+        string $date,
+        string $venue,
+        int $attendance,
+        int $blockId,
+        string $coordinatorName
+    ): string {
+        return md5(
+            strtolower(trim($name)) . '|' .
+            strtolower(trim($date)) . '|' .
+            strtolower(trim($venue)) . '|' .
+            $attendance . '|' .
+            $blockId . '|' .
+            strtolower(trim($coordinatorName))
+        );
+    }
+
+    /**
+     * Generate the SUBMISSION ID — a globally unique record identifier.
+     *
+     * Includes uniqid() to guarantee per-record uniqueness, but must NOT
+     * be used for semantic deduplication (use generateSemanticHash() instead).
+     *
+     * @deprecated The submission_id field replaces the old unique_hash. Use
+     *             generateSemanticHash() for all deduplication logic.
+     */
+    public static function generateSubmissionId(
         string $name,
         string $date,
         string $venue,
@@ -112,6 +168,21 @@ class Event extends Model
             strtolower(trim($coordinatorName)) . '|' .
             uniqid('', true)
         );
+    }
+
+    /**
+     * @deprecated Use generateSemanticHash() for dedup and generateSubmissionId() for record IDs.
+     * Kept for one release cycle during rollback window.
+     */
+    public static function generateUniqueHash(
+        string $name,
+        string $date,
+        string $venue,
+        int $attendance,
+        int $blockId,
+        string $coordinatorName
+    ): string {
+        return static::generateSubmissionId($name, $date, $venue, $attendance, $blockId, $coordinatorName);
     }
 
     /**
