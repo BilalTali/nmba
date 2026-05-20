@@ -28,7 +28,7 @@ remote() {
 }
 
 remote_artisan() {
-    remote "$PHP $APP_DIR/artisan $*"
+    remote "$PHP $APP_DIR/artisan --no-interaction $*"
 }
 
 log()  { echo -e "\e[1;34m▶ $1\e[0m"; }

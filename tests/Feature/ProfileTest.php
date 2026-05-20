@@ -96,4 +96,44 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_block_worker_cannot_access_profile_page(): void
+    {
+        $user = User::factory()->create(['role' => 'block_worker']);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/profile');
+
+        $response->assertRedirect(route('block.events.index'));
+    }
+
+    public function test_block_worker_cannot_update_profile_information(): void
+    {
+        $user = User::factory()->create(['role' => 'block_worker']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Should Not Change',
+                'email' => 'shouldnot@example.com',
+            ]);
+
+        $response->assertRedirect(route('block.events.index'));
+        $this->assertNotSame('Should Not Change', $user->fresh()->name);
+    }
+
+    public function test_block_worker_cannot_delete_account(): void
+    {
+        $user = User::factory()->create(['role' => 'block_worker']);
+
+        $response = $this
+            ->actingAs($user)
+            ->delete('/profile', [
+                'password' => 'password',
+            ]);
+
+        $response->assertRedirect(route('block.events.index'));
+        $this->assertNotNull($user->fresh());
+    }
 }
