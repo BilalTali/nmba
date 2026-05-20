@@ -647,4 +647,32 @@ class EventController extends Controller
 
         return back()->with('success', "Successfully purged {$deletedCount} media files from synced events.");
     }
+
+    public function viewSyncLogs(): \Symfony\Component\HttpFoundation\Response
+    {
+        $logPath = storage_path('logs/sync-' . now()->format('Y-m-d') . '.log');
+        if (!file_exists($logPath)) {
+            $files = glob(storage_path('logs/sync-*.log'));
+            if (!empty($files)) {
+                $logPath = end($files);
+            } else {
+                return response('No sync logs found.', 200, ['Content-Type' => 'text/plain']);
+            }
+        }
+        
+        $content = file_get_contents($logPath);
+        $lines = explode("\n", $content);
+        $lastLines = array_slice($lines, -300);
+        return response(implode("\n", $lastLines), 200, ['Content-Type' => 'text/plain']);
+    }
+
+    public function viewAuditLogs(): \Symfony\Component\HttpFoundation\Response
+    {
+        $files = glob(storage_path('audit/hash-audit-*.log'));
+        if (empty($files)) {
+            return response('No audit logs found. Please run the deploy.sh script or the audit:rehash-events command to generate one.', 200, ['Content-Type' => 'text/plain']);
+        }
+        $logPath = end($files);
+        return response(file_get_contents($logPath), 200, ['Content-Type' => 'text/plain']);
+    }
 }

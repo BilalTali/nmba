@@ -185,7 +185,105 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 </div>
                             </div>
                         )}
-                    
+
+                        {/* Quick Diagnostics & Links */}
+                        {isDistrictAdmin && (
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                                <h3 className="text-slate-800 text-lg font-bold mb-4 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    System Diagnostics & Traffic Checks
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                    <a
+                                        href="https://nashamuktjk.org/enterprise/login"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                    >
+                                        <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">Target Portal</h4>
+                                            <p className="text-xs text-slate-500">Official JK Login</p>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href={route('admin.logs.sync')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                    >
+                                        <div className="p-2.5 rounded-xl bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">Queue Sync Logs</h4>
+                                            <p className="text-xs text-slate-500">Real-time sync traffic</p>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href={route('admin.logs.audit')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                    >
+                                        <div className="p-2.5 rounded-xl bg-purple-100 text-purple-700 group-hover:bg-purple-200 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">Audit Reports</h4>
+                                            <p className="text-xs text-slate-500">Database hash check</p>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href={route('events.check-portal')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                    >
+                                        <div className="p-2.5 rounded-xl bg-amber-100 text-amber-700 group-hover:bg-amber-200 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">API Health Probe</h4>
+                                            <p className="text-xs text-slate-500">Live JSON status check</p>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href="https://hpanel.hostinger.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                    >
+                                        <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 group-hover:bg-slate-300 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">Traffic & Server</h4>
+                                            <p className="text-xs text-slate-500">Hostinger hPanel stats</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Metrics Section */}
                         {isDistrictAdmin && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -409,7 +507,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                 {/* Settings Sidebar — full-width on mobile, fixed 320px on desktop */}
                 {isDistrictAdmin && (
-                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-300 ease-in-out z-50 pt-20 ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-300 ease-in-out z-50 pt-20 overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-8">
                                 <h3 className="text-2xl font-black text-slate-800">Settings</h3>

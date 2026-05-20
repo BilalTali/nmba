@@ -130,6 +130,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Setting env route
     Route::post('/settings/env', [\App\Http\Controllers\SettingsController::class, 'updateEnv'])
         ->middleware('throttle:10,1')->name('settings.env');
+
+    // Diagnostic Logs
+    Route::get('/admin/logs/sync', [\App\Http\Controllers\EventController::class, 'viewSyncLogs'])
+        ->name('admin.logs.sync');
+    Route::get('/admin/logs/audit', [\App\Http\Controllers\EventController::class, 'viewAuditLogs'])
+        ->name('admin.logs.audit');
 });
 
 // Common authenticated routes
