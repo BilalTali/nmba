@@ -106,7 +106,7 @@ class Kernel extends ConsoleKernel
                 }
             }
 
-        })->everyFiveMinutes()->name('nmba_sync_orchestration_sweep')->withoutOverlapping();
+        })->everyMinute()->name('nmba_sync_orchestration_sweep')->withoutOverlapping();
 
         // FIX-OPS-01: Alert if events are stuck in pending for over 30 minutes.
         // Runs every 15 minutes. Sends email to ADMIN_EMAIL and writes to sync-health.log.

@@ -666,39 +666,51 @@ class EventController extends Controller
             return;
         }
 
-        $artisanPath = base_path('artisan');
-        $phpBinary = PHP_BINARY;
-
-        // If running in a web context, fallback path replacement for php-fpm or php-cgi
-        if (preg_match('/php-fpm[0-9.]*$/i', $phpBinary)) {
-            $phpBinary = preg_replace('/php-fpm[0-9.]*$/i', 'php', $phpBinary);
-        } elseif (preg_match('/php-cgi[0-9.]*$/i', $phpBinary)) {
-            $phpBinary = preg_replace('/php-cgi[0-9.]*$/i', 'php', $phpBinary);
-        }
-
-        if (!file_exists($phpBinary) || !is_executable($phpBinary)) {
-            $phpBinary = 'php';
-        }
-
-        $command = escapeshellarg($phpBinary) . ' ' . escapeshellarg($artisanPath) . ' queue:work database --max-jobs=10 --tries=10 --timeout=110';
-
+        // Try local exec() fallback first (for environments where exec is enabled)
         try {
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                if (function_exists('popen')) {
-                    pclose(popen("start /B " . $command, "r"));
-                } else {
-                    Log::channel('sync')->warning('popen is disabled. Background queue worker could not be started.');
+            if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN' && function_exists('exec')) {
+                $artisanPath = base_path('artisan');
+                $phpBinary = PHP_BINARY;
+                if (preg_match('/php-fpm[0-9.]*$/i', $phpBinary)) {
+                    $phpBinary = preg_replace('/php-fpm[0-9.]*$/i', 'php', $phpBinary);
+                } elseif (preg_match('/php-cgi[0-9.]*$/i', $phpBinary)) {
+                    $phpBinary = preg_replace('/php-cgi[0-9.]*$/i', 'php', $phpBinary);
                 }
-            } else {
-                if (function_exists('exec')) {
-                    exec($command . " > /dev/null 2>&1 &");
-                } else {
-                    // Hostinger disables exec(). We rely entirely on the Web Cron (nmba-cron.php)
-                    // Muted warning to prevent log spam during 15s health checks.
+                if (!file_exists($phpBinary) || !is_executable($phpBinary)) {
+                    $phpBinary = 'php';
                 }
+                $command = escapeshellarg($phpBinary) . ' ' . escapeshellarg($artisanPath) . ' queue:work database --max-jobs=10 --tries=10 --timeout=110';
+                exec($command . " > /dev/null 2>&1 &");
+                Log::channel('sync')->info('Background queue worker started via exec().');
             }
         } catch (\Throwable $e) {
-            Log::channel('sync')->error('Failed to run queue worker in background: ' . $e->getMessage());
+            Log::channel('sync')->warning('Failed to run queue worker via exec(): ' . $e->getMessage());
+        }
+
+        // Always trigger Web Cron loopback as well (perfect for Hostinger / shared hosting)
+        try {
+            $cronToken = env('CRON_TOKEN');
+            if ($cronToken) {
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'nmbabudgam.in';
+                $cronUrl = $protocol . '://' . $host . '/nmba-cron.php?token=' . urlencode($cronToken);
+
+                Log::channel('sync')->info('Triggering background queue worker via loopback: ' . $cronUrl);
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $cronUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+                curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_exec($ch);
+                curl_close($ch);
+            } else {
+                Log::channel('sync')->warning('CRON_TOKEN not set in environment. Loopback trigger skipped.');
+            }
+        } catch (\Throwable $e) {
+            Log::channel('sync')->warning('Loopback queue worker trigger failed: ' . $e->getMessage());
         }
     }
 

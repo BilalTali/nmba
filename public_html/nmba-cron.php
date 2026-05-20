@@ -115,6 +115,39 @@ try {
     // Release lock
     @unlink($lockFile);
 
+    // Check if there are still ready jobs in the queue
+    try {
+        $remainingJobs = \Illuminate\Support\Facades\DB::table('jobs')
+            ->where('queue', 'default')
+            ->whereNull('reserved_at')
+            ->where('available_at', '<=', time())
+            ->count();
+
+        if ($remainingJobs > 0) {
+            // Trigger next batch asynchronously via loopback call
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'nmbabudgam.in';
+            $selfUrl = $protocol . '://' . $host . '/nmba-cron.php?token=' . urlencode($cronToken);
+
+            $logEntry = '[' . date('Y-m-d H:i:s') . "] Spawning next batch async loopback: {$remainingJobs} jobs remaining.\n";
+            file_put_contents(LOG_FILE, $logEntry, FILE_APPEND);
+
+            // Trigger curl asynchronously with 1-second timeout
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $selfUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+            curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+    } catch (\Throwable $dbEx) {
+        $logEntry = '[' . date('Y-m-d H:i:s') . '] Loopback trigger failed: ' . $dbEx->getMessage() . PHP_EOL;
+        file_put_contents(LOG_FILE, $logEntry, FILE_APPEND);
+    }
+
     // Respond with confirmation
     http_response_code(200);
     header('Content-Type: text/plain');
