@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
 
-export default function Dashboard({ metrics, recentEvents, recentFailures, autoSyncPaused, statusData = [], eventsByBlock = [], eventsOverTime = [], telemetryData = [], portalConfig = {} }) {
+export default function Dashboard({ metrics, recentEvents, recentFailures, autoSyncPaused, portalCredentialsInvalid, statusData = [], eventsByBlock = [], eventsOverTime = [], telemetryData = [], portalConfig = {} }) {
     const { auth } = usePage().props;
     const isDistrictAdmin = auth.user.role === 'admin';
 
@@ -17,6 +17,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
         pending_count: 0,
         triggered_sync: false,
         auto_sync_paused: autoSyncPaused,
+        portal_credentials_invalid: portalCredentialsInvalid,
     });
 
     const [telemetry, setTelemetry] = useState(telemetryData);
@@ -139,7 +140,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                 }
             } catch (error) {
                 console.error('Portal health check failed:', error);
-                setHealthState({ status: 'offline', auto_sync_paused: false });
+                setHealthState({ status: 'offline', auto_sync_paused: false, portal_credentials_invalid: false });
             }
         };
 
@@ -236,6 +237,34 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
             <div className="flex relative bg-slate-50 min-h-screen">
                 <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'sm:mr-80' : ''}`}>
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
+
+                        {/* Invalid Credentials Premium Alert */}
+                        {isDistrictAdmin && healthState.portal_credentials_invalid && (
+                            <div className="bg-gradient-to-r from-rose-50/90 to-amber-50/90 border border-rose-200 rounded-3xl p-6 shadow-md shadow-rose-100/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-pulse duration-[3000ms]">
+                                <div className="flex gap-4 items-start">
+                                    <div className="p-3.5 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/20 shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h4 className="text-rose-950 font-extrabold text-lg tracking-tight">Sync Paused: Invalid Portal Credentials Detected!</h4>
+                                        <p className="text-slate-600 text-sm font-medium leading-relaxed">
+                                            Automatic synchronization has been globally paused to prevent the target portal from blacklisting your IP address. Please update your API ID or password in the configuration panel to resume synchronization.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsSidebarOpen(true)}
+                                    className="px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2 shrink-0 hover:scale-105 duration-200"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Update Credentials
+                                </button>
+                            </div>
+                        )}
 
                         {/* SRE Portal Health & Uptime Dashboard */}
                         {isDistrictAdmin && (

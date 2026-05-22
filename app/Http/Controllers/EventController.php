@@ -31,6 +31,7 @@ class EventController extends Controller
     public function dashboard(): \Inertia\Response
     {
         $autoSyncPaused = Cache::get('auto_sync_paused', false);
+        $portalCredentialsInvalid = Cache::get('portal_credentials_invalid', false);
 
         // Cache dashboard counts for 30 seconds to completely eliminate DB pressure under heavy polling
         $cachedMetrics = Cache::remember('dashboard_metrics_counts', 30, function () {
@@ -136,6 +137,7 @@ class EventController extends Controller
             'recentEvents'   => $recentEvents,
             'recentFailures' => $recentFailures,
             'autoSyncPaused' => $autoSyncPaused,
+            'portalCredentialsInvalid' => $portalCredentialsInvalid,
             'statusData'     => $statusData,
             'eventsByBlock'  => $eventsByBlock,
             'eventsOverTime' => $eventsOverTime,
@@ -446,6 +448,7 @@ class EventController extends Controller
             Cache::put('sre_portal_is_alive', true, now()->addMinutes(5));
             Cache::forget('auto_sync_paused');
             Cache::forget('sre_consecutive_auth_failures');
+            Cache::forget('portal_credentials_invalid');
 
             // Retrieve currently queued event IDs to avoid duplicate dispatching
             $queuedIds = $this->getQueuedEventIds();
@@ -560,6 +563,7 @@ class EventController extends Controller
             Cache::forget('sre_circuit_breaker_portal_down');
             Cache::forget('auto_sync_paused');
             Cache::forget('sre_consecutive_auth_failures');
+            Cache::forget('portal_credentials_invalid');
 
             // Force dashboard metrics to refresh
             Cache::forget('dashboard_metrics_counts');
@@ -590,6 +594,7 @@ class EventController extends Controller
         $wasOfflinePreviously = Cache::get('sre_last_portal_was_offline', false);
         $isOnline = $healthService->isAlive(false);
         $isPaused = Cache::get('auto_sync_paused', false);
+        $credentialsInvalid = Cache::get('portal_credentials_invalid', false);
 
         $pendingCount = Event::where('sync_status', 'pending')->count();
 
@@ -605,6 +610,7 @@ class EventController extends Controller
                 'pending_count'    => $pendingCount,
                 'triggered_sync'   => false,
                 'auto_sync_paused' => $isPaused,
+                'portal_credentials_invalid' => $credentialsInvalid,
                 'telemetry'        => $telemetry,
             ]);
         }
@@ -694,6 +700,7 @@ class EventController extends Controller
             'pending_count'         => $pendingCount,
             'triggered_sync'        => $triggeredSync,
             'auto_sync_paused'      => $isPaused,
+            'portal_credentials_invalid' => $credentialsInvalid,
             'recovered_from_outage' => $recoveredFromOutage,
             'telemetry'             => $telemetry,
         ]);

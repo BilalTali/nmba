@@ -319,4 +319,139 @@ class SyncQueueConnectionTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Cache::has('sre_circuit_breaker_portal_down'));
         $this->assertFalse(\Illuminate\Support\Facades\Cache::has('sre_portal_is_alive'));
     }
+
+    /** @test */
+    public function job_auth_failure_threshold_breach_pauses_sync_and_sets_cache_flags(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $event = Event::create([
+            'event_name'                       => 'Test Event',
+            'event_date'                       => '2026-05-01',
+            'event_venue'                      => 'Venue',
+            'event_category'                   => ['Awareness'],
+            'district_name'                    => 'Budgam',
+            'block_id'                         => $block->id,
+            'actual_attendance'                => 10,
+            'attendance_range'                 => '10-50',
+            'target_audience'                  => ['Students'],
+            'age_group'                        => ['18-25'],
+            'event_coordinator_name'           => 'Coordinator',
+            'event_coordinator_contact_number' => '9876543210',
+            'event_coordinator_desig'          => 'Teacher',
+            'photo_paths'                      => [],
+            'unique_hash'                      => md5(uniqid('', true)),
+            'semantic_hash'                    => md5('semantic-test'),
+            'submission_id'                    => md5(uniqid('', true)),
+            'sync_status'                      => 'pending',
+            'sync_attempts'                    => 0,
+        ]);
+
+        // Mock PortalSyncInterface to throw AuthenticationSyncException
+        $syncServiceMock = $this->mock(\App\Services\Contracts\PortalSyncInterface::class);
+        $syncServiceMock->shouldReceive('sync')
+            ->andThrow(new \App\Exceptions\AuthenticationSyncException('Invalid credentials'));
+
+        // Mock PortalHealthService to return true (alive) so it doesn't bypass auth failure handling
+        $healthMock = $this->mock(\App\Services\PortalHealthService::class);
+        $healthMock->shouldReceive('isAlive')->andReturn(true);
+
+        // Run the first failure
+        $job = new SyncEventJob($event);
+        $this->app->call([$job, 'handle']);
+
+        $this->assertEquals(1, \Illuminate\Support\Facades\Cache::get('sre_consecutive_auth_failures'));
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('portal_credentials_invalid'));
+
+        // Run the second failure
+        $event->refresh();
+        $event->sync_status = 'pending'; // reset status to test again
+        $event->save();
+        $job2 = new SyncEventJob($event);
+        $this->app->call([$job2, 'handle']);
+
+        $this->assertEquals(2, \Illuminate\Support\Facades\Cache::get('sre_consecutive_auth_failures'));
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('portal_credentials_invalid'));
+
+        // Run the third failure (threshold breach)
+        $event->refresh();
+        $event->sync_status = 'pending';
+        $event->save();
+        $job3 = new SyncEventJob($event);
+        $this->app->call([$job3, 'handle']);
+
+        $this->assertEquals(3, \Illuminate\Support\Facades\Cache::get('sre_consecutive_auth_failures'));
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::get('portal_credentials_invalid'));
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::get('auto_sync_paused'));
+    }
+
+    /** @test */
+    public function admin_updating_credentials_clears_invalid_credentials_cache_flag(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $admin = \App\Models\User::factory()->create(['role' => 'admin', 'block_id' => $block->id]);
+
+        \Illuminate\Support\Facades\Cache::put('portal_credentials_invalid', true);
+
+        // Submit credential updates to settings.env endpoint
+        $response = $this->actingAs($admin)->post(route('settings.env'), [
+            'portal_url' => 'https://nashamuktjk.org',
+            'admin_id' => 'admin@test.com',
+            'admin_password' => 'secret123',
+        ]);
+
+        $response->assertStatus(302);
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('portal_credentials_invalid'));
+    }
+
+    /** @test */
+    public function admin_resetting_failed_events_clears_invalid_credentials_cache_flag(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $admin = \App\Models\User::factory()->create(['role' => 'admin', 'block_id' => $block->id]);
+
+        \Illuminate\Support\Facades\Cache::put('portal_credentials_invalid', true);
+
+        $response = $this->actingAs($admin)->post(route('events.reset-failed'));
+
+        $response->assertStatus(302);
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('portal_credentials_invalid'));
+    }
+
+    /** @test */
+    public function admin_forcing_sync_clears_invalid_credentials_cache_flag(): void
+    {
+        $block = Block::create([
+            'id'          => 1,
+            'name'        => 'Test Block',
+            'slug'        => 'test-block',
+            'district_id' => 1,
+        ]);
+
+        $admin = \App\Models\User::factory()->create(['role' => 'admin', 'block_id' => $block->id]);
+
+        \Illuminate\Support\Facades\Cache::put('portal_credentials_invalid', true);
+
+        $response = $this->actingAs($admin)->post(route('events.force-sync'));
+
+        $response->assertStatus(302);
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('portal_credentials_invalid'));
+    }
 }

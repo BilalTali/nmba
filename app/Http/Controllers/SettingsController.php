@@ -27,6 +27,7 @@ class SettingsController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget('auto_sync_paused');
         \Illuminate\Support\Facades\Cache::forget('sre_consecutive_auth_failures');
+        \Illuminate\Support\Facades\Cache::forget('portal_credentials_invalid');
 
         return redirect()->back()->with('success', 'Credentials updated successfully.');
     }

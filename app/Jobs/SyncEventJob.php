@@ -215,6 +215,7 @@ class SyncEventJob implements ShouldQueue
 
             // Pause auto-sync globally
             \Illuminate\Support\Facades\Cache::put('auto_sync_paused', true);
+            \Illuminate\Support\Facades\Cache::put('portal_credentials_invalid', true);
 
             Log::channel('sync')->error('AUTH FAILURE THRESHOLD REACHED: Event set to pending. Auto-sync paused.', [
                 'event_id'             => $this->event->id,
