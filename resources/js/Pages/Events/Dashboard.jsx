@@ -257,7 +257,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             
                             <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                 <div className="space-y-2.5 max-w-2xl">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-xs font-bold uppercase tracking-wider">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
                                         <span className="relative flex h-2 w-2">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -325,7 +325,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
 
                                 {/* Header Block */}
-                                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 border-b border-slate-850 pb-5">
+                                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 border-b border-slate-800 pb-5">
                                     <div className="flex items-center gap-3.5">
                                         {/* Pulsing state circle */}
                                         <div className="relative flex h-5 w-5 shrink-0">
@@ -337,17 +337,17 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sync Target Portal</span>
-                                                <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-350">
+                                                <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
                                                     {portalConfig.portal_url ? new URL(portalConfig.portal_url).hostname : 'nashamuktjk.org'}
                                                 </span>
                                             </div>
                                             <h4 className="text-lg font-black tracking-tight mt-0.5 text-slate-100 font-outfit" style={{ fontFamily: "'Outfit', sans-serif" }}>
                                                 {healthState.status === 'probing' && 'Initializing active health probing...'}
-                                                {healthState.status === 'offline' && <span className="text-rose-450">Offline (Timeout or 522 Cloudflare Error)</span>}
+                                                {healthState.status === 'offline' && <span className="text-rose-400">Offline (Timeout or 522 Cloudflare Error)</span>}
                                                 {healthState.status === 'online' && (
                                                     healthState.auto_sync_paused 
-                                                        ? <span className="text-amber-450 font-bold">Online — Auto-Sync Paused ({healthState.pending_count} pending)</span>
-                                                        : <span className="text-emerald-405 font-bold">Online — Operational {healthState.triggered_sync && `(Syncing ${healthState.pending_count} events)`}</span>
+                                                        ? <span className="text-amber-400 font-bold">Online — Auto-Sync Paused ({healthState.pending_count} pending)</span>
+                                                        : <span className="text-emerald-400 font-bold">Online — Operational {healthState.triggered_sync && `(Syncing ${healthState.pending_count} events)`}</span>
                                                 )}
                                             </h4>
                                         </div>
@@ -396,10 +396,10 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             }}
                                         >
                                             {buckets.map((bucket) => {
-                                                let bgClass = 'bg-slate-850 hover:bg-slate-800';
-                                                if (bucket.status === 'online') bgClass = 'bg-emerald-505 hover:bg-emerald-500 shadow-sm shadow-emerald-500/10';
-                                                else if (bucket.status === 'offline') bgClass = 'bg-rose-505 hover:bg-rose-500 shadow-sm shadow-rose-500/10';
-                                                else if (bucket.status === 'degraded') bgClass = 'bg-amber-505 hover:bg-amber-500 shadow-sm shadow-amber-500/10';
+                                                let bgClass = 'bg-slate-800 hover:bg-slate-700';
+                                                if (bucket.status === 'online') bgClass = 'bg-emerald-500 hover:bg-emerald-400 shadow-sm shadow-emerald-500/10';
+                                                else if (bucket.status === 'offline') bgClass = 'bg-rose-500 hover:bg-rose-400 shadow-sm shadow-rose-500/10';
+                                                else if (bucket.status === 'degraded') bgClass = 'bg-amber-500 hover:bg-amber-400 shadow-sm shadow-amber-500/10';
 
                                                 return (
                                                     <div
@@ -426,7 +426,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                 style={{ left: `${hoveredBucket.left}px` }}
                                             >
                                                 <div className="bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl shadow-2xl p-3.5 text-white w-52 space-y-2.5">
-                                                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold tracking-wider border-b border-slate-850 pb-1.5 uppercase font-mono">
+                                                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold tracking-wider border-b border-slate-800 pb-1.5 uppercase font-mono">
                                                         <span>{hoveredBucket.startLabel} - {hoveredBucket.endLabel}</span>
                                                         <span>B#{hoveredBucket.id + 1}</span>
                                                     </div>
@@ -435,8 +435,8 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                             <span className="text-slate-400 font-semibold">Status:</span>
                                                             <span className={`font-black uppercase tracking-wider text-[10px] px-2 py-0.5 rounded ${
                                                                 hoveredBucket.status === 'online' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                                hoveredBucket.status === 'offline' ? 'bg-rose-500/20 text-rose-450' :
-                                                                hoveredBucket.status === 'degraded' ? 'bg-amber-500/20 text-amber-450' :
+                                                                hoveredBucket.status === 'offline' ? 'bg-rose-500/20 text-rose-400' :
+                                                                hoveredBucket.status === 'degraded' ? 'bg-amber-500/20 text-amber-400' :
                                                                 'bg-slate-500/20 text-slate-400'
                                                             }`}>
                                                                 {hoveredBucket.status === 'no_data' ? 'No Data' : hoveredBucket.status}
@@ -444,7 +444,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                         </div>
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Uptime Ratio:</span>
-                                                            <span className="font-bold font-mono text-slate-205">{hoveredBucket.uptime}%</span>
+                                                            <span className="font-bold font-mono text-slate-200">{hoveredBucket.uptime}%</span>
                                                         </div>
                                                         <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Avg Latency:</span>
@@ -468,7 +468,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 100% Operational</span>
                                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Degraded Spot</span>
                                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Full Outage</span>
-                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-850"></span> No Probe Data</span>
+                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-800"></span> No Probe Data</span>
                                         </div>
                                         <div className="font-mono text-slate-600">
                                             Range: {uptimeRange === '24h' ? 'Last 24 Hours' : uptimeRange === '12h' ? 'Last 12 Hours' : 'Last 6 Hours'} to Now
@@ -647,7 +647,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                     <div>
                                         <h3 className="text-slate-800 text-lg font-extrabold tracking-tight flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
                                             <span className="relative flex h-3.5 w-3.5">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
                                             </span>
                                             Live Server Telemetry & Health Indexes
@@ -663,7 +663,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             <button
                                                 key={tab.id}
                                                 onClick={() => setActiveTelemetryTab(tab.id)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${activeTelemetryTab === tab.id ? 'bg-white text-slate-850 shadow-sm border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${activeTelemetryTab === tab.id ? 'bg-white text-slate-800 shadow-sm border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
                                                 style={{ fontFamily: "'Outfit', sans-serif" }}
                                             >
                                                 {tab.label}
@@ -1041,7 +1041,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                     </svg>
                                     Sync Console
                                 </h3>
-                                <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-450 hover:bg-slate-700 hover:text-white transition-all">
+                                <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
@@ -1154,7 +1154,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             <div className="border-t border-slate-800 pt-5 space-y-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Settings & Auth</p>
 
-                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-850 space-y-4">
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
                                     <h4 className="text-xs font-black text-emerald-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Portal Credentials</h4>
                                     <form onSubmit={submitEnv} className="space-y-4.5">
                                         <div className="space-y-1.5">
@@ -1168,7 +1168,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                 placeholder="https://example.com"
                                                 required
                                             />
-                                            {errors.portal_url && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.portal_url}</p>}
+                                            {errors.portal_url && <p className="text-rose-400 text-[10px] mt-1 font-medium">{errors.portal_url}</p>}
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">API ID</label>
@@ -1180,7 +1180,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                 style={{ fontFamily: "'Inter', sans-serif" }}
                                                 placeholder="Enter API ID"
                                             />
-                                            {errors.admin_id && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.admin_id}</p>}
+                                            {errors.admin_id && <p className="text-rose-400 text-[10px] mt-1 font-medium">{errors.admin_id}</p>}
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">API Password</label>
@@ -1196,7 +1196,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-450 hover:text-emerald-500 focus:outline-none"
+                                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-emerald-500 focus:outline-none"
                                                 >
                                                     {showPassword ? (
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-2.29c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
@@ -1205,7 +1205,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                     )}
                                                 </button>
                                             </div>
-                                            {errors.admin_password && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.admin_password}</p>}
+                                            {errors.admin_password && <p className="text-rose-400 text-[10px] mt-1 font-medium">{errors.admin_password}</p>}
                                         </div>
                                         {settingsSuccess && (
                                             <p className="text-emerald-400 text-xs font-semibold bg-emerald-950/40 border border-emerald-900/60 rounded-xl px-4 py-2" style={{ fontFamily: "'Inter', sans-serif" }}>{settingsSuccess}</p>
@@ -1216,7 +1216,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className="w-full py-3 bg-emerald-650 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/10 transition-all disabled:opacity-50"
+                                            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/10 transition-all disabled:opacity-50"
                                             style={{ fontFamily: "'Outfit', sans-serif" }}
                                         >
                                             {processing ? 'Saving...' : 'Update API Settings'}
