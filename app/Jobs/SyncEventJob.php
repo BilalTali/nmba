@@ -132,6 +132,9 @@ class SyncEventJob implements ShouldQueue
                 // Clear any pending dispatch cache lock
                 \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
 
+                // Reset consecutive auth failures counter on success
+                \Illuminate\Support\Facades\Cache::forget('sre_consecutive_auth_failures');
+
                 // Audit log: record successful sync attempt
                 $this->writeSyncLog('success', null, null);
 
@@ -182,22 +185,52 @@ class SyncEventJob implements ShouldQueue
         // Audit log: record auth failure
         $this->writeSyncLog('failure', null, $errorMessage);
 
-        $this->event->markFailed($errorMessage);
-        // Reset sync status back to pending instead of keeping it in transient retry loop
-        Event::where('id', $this->event->id)->update(['sync_status' => 'pending']);
+        // Sanity check: if the portal is actually offline or structurally degraded,
+        // do not pause auto-sync globally. Instead, handle this as a transient failure.
+        try {
+            $healthService = app(\App\Services\PortalHealthService::class);
+            if (!$healthService->isAlive(true)) {
+                Log::channel('sync')->warning('Auth failure but health check indicates portal is offline or structurally degraded — treating as transient.', [
+                    'event_id' => $this->event->id,
+                    'reason'   => mb_substr($errorMessage, 0, 200),
+                ]);
+                $this->handleTransientFailure('Portal check failed during auth error: ' . $errorMessage);
+                return;
+            }
+        } catch (\Throwable $e) {
+            Log::channel('sync')->warning('Error running health check during auth failure: ' . $e->getMessage());
+        }
 
-        // Clear dispatch lock since auto-sync is paused
-        \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
+        // Increment consecutive auth failures counter
+        $failures = (int) \Illuminate\Support\Facades\Cache::get('sre_consecutive_auth_failures', 0) + 1;
+        \Illuminate\Support\Facades\Cache::put('sre_consecutive_auth_failures', $failures, now()->addDays(1));
 
-        // Pause auto-sync globally
-        \Illuminate\Support\Facades\Cache::put('auto_sync_paused', true);
+        if ($failures >= 3) {
+            $this->event->markFailed($errorMessage);
+            // Reset sync status back to pending instead of keeping it in transient retry loop
+            Event::where('id', $this->event->id)->update(['sync_status' => 'pending']);
 
-        Log::channel('sync')->error('AUTH FAILURE: Event set to pending. Auto-sync paused.', [
-            'event_id'      => $this->event->id,
-            'reason'        => mb_substr($errorMessage, 0, 500),
-        ]);
+            // Clear dispatch lock since auto-sync is paused
+            \Illuminate\Support\Facades\Cache::forget("sre_sync_dispatch_lock_{$this->event->id}");
 
-        $this->delete();
+            // Pause auto-sync globally
+            \Illuminate\Support\Facades\Cache::put('auto_sync_paused', true);
+
+            Log::channel('sync')->error('AUTH FAILURE THRESHOLD REACHED: Event set to pending. Auto-sync paused.', [
+                'event_id'             => $this->event->id,
+                'consecutive_failures' => $failures,
+                'reason'               => mb_substr($errorMessage, 0, 500),
+            ]);
+
+            $this->delete();
+        } else {
+            Log::channel('sync')->warning('Auth failure encountered but below threshold — treating as transient.', [
+                'event_id'             => $this->event->id,
+                'consecutive_failures' => $failures,
+                'reason'               => mb_substr($errorMessage, 0, 200),
+            ]);
+            $this->handleTransientFailure('Auth failure (attempt ' . $failures . ' of 3): ' . $errorMessage);
+        }
     }
 
     /**

@@ -182,7 +182,6 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
     const toggleSync = (eventId) => post(route('events.toggleSync', eventId));
     const retrySync = (eventId) => post(route('events.retrySync', eventId));
-    const toggleAutoSync = () => post(route('events.toggleAutoSync'));
     const forceSyncQueue = () => post(route('events.force-sync'));
     const runQueueWorker = () => post(route('events.run-queue-worker'));
     const clearQueue = () => post(route('events.clear-queue'));
@@ -893,20 +892,6 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             {/* ── Quick Actions ── */}
                             <div className="space-y-2 mb-5">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 mb-3">Quick Actions</p>
-
-                                <button
-                                    onClick={toggleAutoSync}
-                                    className={`w-full py-3 px-4 rounded-xl text-white font-bold transition-all text-sm flex items-center gap-3 shadow-sm ${
-                                        healthState.auto_sync_paused
-                                            ? 'bg-amber-500 hover:bg-amber-400'
-                                            : 'bg-teal-600 hover:bg-teal-500'
-                                    }`}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {healthState.auto_sync_paused ? 'Resume Auto-Sync' : 'Pause Auto-Sync'}
-                                </button>
 
                                 <button
                                     onClick={forceSyncQueue}

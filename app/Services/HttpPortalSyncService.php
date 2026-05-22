@@ -205,6 +205,18 @@ class HttpPortalSyncService implements PortalSyncInterface
                 !str_contains($dashHtml, 'sign out') &&
                 !str_contains($dashHtml, 'dashboard')
             ) {
+                // Determine if this is a standard redirect back to the login page (with password input field),
+                // indicating a real credential failure, or a false-positive (e.g. Cloudflare interstitial, 
+                // maintenance page, rate limit, or server error).
+                $crawler = new Crawler((string) $postResponse->getBody());
+                $hasPasswordField = $crawler->filter('input[type="password"]')->count() > 0;
+
+                if (!$hasPasswordField) {
+                    throw new TransientSyncException(
+                        'Portal returned a non-login, non-dashboard page (likely Cloudflare challenge or transient server error). Treating as transient.'
+                    );
+                }
+
                 throw new \App\Exceptions\AuthenticationSyncException(
                     'Invalid Portal Credentials! Please update the settings. Auto-sync is paused.'
                 );
@@ -212,6 +224,11 @@ class HttpPortalSyncService implements PortalSyncInterface
         } catch (ConnectException $e) {
             throw new TransientSyncException(
                 "Network loss during authentication transmission: {$e->getMessage()}", 0, $e
+            );
+        } catch (RequestException $e) {
+            $status = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 500;
+            throw new TransientSyncException(
+                "Portal returned HTTP {$status} error during authentication: {$e->getMessage()}", 0, $e
             );
         }
     }

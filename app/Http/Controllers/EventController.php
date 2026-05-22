@@ -444,6 +444,8 @@ class EventController extends Controller
             // Clear the circuit breaker so sync attempts can proceed immediately.
             Cache::forget('sre_circuit_breaker_portal_down');
             Cache::put('sre_portal_is_alive', true, now()->addMinutes(5));
+            Cache::forget('auto_sync_paused');
+            Cache::forget('sre_consecutive_auth_failures');
 
             // Retrieve currently queued event IDs to avoid duplicate dispatching
             $queuedIds = $this->getQueuedEventIds();
@@ -556,6 +558,8 @@ class EventController extends Controller
 
             // Clear the circuit breaker so synchronization can run immediately
             Cache::forget('sre_circuit_breaker_portal_down');
+            Cache::forget('auto_sync_paused');
+            Cache::forget('sre_consecutive_auth_failures');
 
             // Force dashboard metrics to refresh
             Cache::forget('dashboard_metrics_counts');
@@ -574,11 +578,16 @@ class EventController extends Controller
     /**
      * Actively probe the portal's live health status, reset the circuit breaker if online,
      * and auto-trigger a background queue worker to sync any pending events immediately.
+     *
+     * Also detects the offline → online transition (portal recovery after a Cloudflare/network outage)
+     * and performs a full queue recovery: clears per-event dispatch locks and resets all delayed
+     * jobs to be immediately available, unblocking syncs that were frozen during the outage.
      */
     public function checkPortalHealth(\App\Services\PortalHealthService $healthService): \Illuminate\Http\JsonResponse
     {
         // This endpoint is polled every 15 seconds — must be fast and non-blocking.
-        // Do NOT bypass the circuit breaker cache. Let the background Cron handle actual health probing.
+        // Track whether the portal was offline on the previous poll so we can detect recovery.
+        $wasOfflinePreviously = Cache::get('sre_last_portal_was_offline', false);
         $isOnline = $healthService->isAlive(false);
         $isPaused = Cache::get('auto_sync_paused', false);
 
@@ -589,6 +598,8 @@ class EventController extends Controller
         $telemetry = $this->getTelemetryHistory();
 
         if (!$isOnline) {
+            // Persist the offline state so the next poll can detect the recovery.
+            Cache::put('sre_last_portal_was_offline', true, now()->addHours(2));
             return response()->json([
                 'status'           => 'offline',
                 'pending_count'    => $pendingCount,
@@ -598,7 +609,55 @@ class EventController extends Controller
             ]);
         }
 
+        // ── Portal is ONLINE ─────────────────────────────────────────────
         $triggeredSync = false;
+        $recoveredFromOutage = false;
+
+        // Detect offline → online transition (e.g. Cloudflare came back up).
+        // Events that were frozen during the outage have:
+        //   1. Individual dispatch cache locks set for hours/days.
+        //   2. Queue jobs with a far-future available_at (from exponential backoff release()).
+        // Both must be cleared so the scheduler and queue worker can act on them immediately.
+        if ($wasOfflinePreviously) {
+            Cache::forget('sre_last_portal_was_offline');
+            $recoveredFromOutage = true;
+
+            Log::channel('sync')->info('Portal back online — outage recovery triggered.', [
+                'pending_count' => $pendingCount,
+            ]);
+
+            // 1. Clear per-event dispatch locks so the scheduler can re-dispatch immediately.
+            try {
+                Event::where('sync_status', 'pending')
+                    ->where('sync_attempts', '!=', -1)
+                    ->chunk(100, function ($pendingEvents) {
+                        foreach ($pendingEvents as $pendingEvent) {
+                            Cache::forget("sre_sync_dispatch_lock_{$pendingEvent->id}");
+                        }
+                    });
+                Log::channel('sync')->info('Outage recovery: per-event dispatch locks cleared.');
+            } catch (\Throwable $e) {
+                Log::channel('sync')->warning('Could not clear dispatch locks on portal recovery: ' . $e->getMessage());
+            }
+
+            // 2. Reset all delayed jobs to available_at = now() so the queue worker picks them up.
+            try {
+                if (config('queue.default') === 'database' && \Illuminate\Support\Facades\Schema::hasTable('jobs')) {
+                    $resetCount = DB::table('jobs')
+                        ->where('available_at', '>', time())
+                        ->update([
+                            'available_at' => time(),
+                            'reserved_at'  => null,
+                        ]);
+                    Log::channel('sync')->info('Outage recovery: delayed jobs reset to immediate.', ['reset_count' => $resetCount]);
+                }
+            } catch (\Throwable $e) {
+                Log::channel('sync')->warning('Could not reset delayed jobs on portal recovery: ' . $e->getMessage());
+            }
+
+            // 3. Evict dashboard cache so fresh metrics are shown immediately.
+            Cache::forget('dashboard_metrics_counts');
+        }
 
         if (!$isPaused) {
             $hasDelayedJobs = false;
@@ -625,17 +684,18 @@ class EventController extends Controller
                 $triggeredSync = true;
             }
 
-            if ($triggeredSync) {
+            if ($triggeredSync || $recoveredFromOutage) {
                 $this->runQueueWorkerInBackground();
             }
         }
 
         return response()->json([
-            'status'           => 'online',
-            'pending_count'    => $pendingCount,
-            'triggered_sync'   => $triggeredSync,
-            'auto_sync_paused' => $isPaused,
-            'telemetry'        => $telemetry,
+            'status'                => 'online',
+            'pending_count'         => $pendingCount,
+            'triggered_sync'        => $triggeredSync,
+            'auto_sync_paused'      => $isPaused,
+            'recovered_from_outage' => $recoveredFromOutage,
+            'telemetry'             => $telemetry,
         ]);
     }
 

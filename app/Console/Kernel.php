@@ -20,9 +20,17 @@ class Kernel extends ConsoleKernel
     {
         $schedule->call(function (PortalHealthService $healthService) {
 
+            // --- Guard 0: Auto-sync paused check ---
+            if (Cache::get('auto_sync_paused', false) === true) {
+                Log::channel('sync')->info('Scheduler skipped — auto-sync is paused globally.');
+                return;
+            }
+
             // --- Guard 1: Circuit breaker check ---
             if (Cache::get('sre_circuit_breaker_portal_down') === true) {
                 Log::channel('sync')->info('Scheduler skipped — circuit breaker is active.');
+                // Track offline state so checkPortalHealth / next scheduler run can detect recovery.
+                Cache::put('sre_last_portal_was_offline', true, now()->addHours(2));
                 return;
             }
 
@@ -44,7 +52,44 @@ class Kernel extends ConsoleKernel
             // --- Guard 3: Portal health pre-flight probe ---
             if (!$healthService->isAlive()) {
                 Log::channel('sync')->warning('Scheduler halted — portal health probe failed. Circuit breaker tripped.');
+                // Track offline state so checkPortalHealth / next scheduler run can detect recovery.
+                Cache::put('sre_last_portal_was_offline', true, now()->addHours(2));
                 return;
+            }
+
+            // --- Portal Recovery Detection ---
+            // Portal is alive. If it was previously offline (outage), all pending events will have:
+            //   1. Per-event dispatch locks set for hours (exponential backoff from handleTransientFailure).
+            //   2. Queue jobs with far-future available_at (from $this->release($delaySeconds)).
+            // Both must be cleared immediately so this scheduler run can re-dispatch them.
+            if (Cache::get('sre_last_portal_was_offline', false)) {
+                Cache::forget('sre_last_portal_was_offline');
+                Log::channel('sync')->info('Scheduler: portal recovery detected — clearing dispatch locks and resetting delayed jobs.');
+
+                // 1. Clear per-event dispatch locks.
+                try {
+                    Event::where('sync_status', 'pending')
+                        ->where('sync_attempts', '!=', -1)
+                        ->chunk(100, function ($recoverableEvents) {
+                            foreach ($recoverableEvents as $re) {
+                                Cache::forget("sre_sync_dispatch_lock_{$re->id}");
+                            }
+                        });
+                } catch (\Throwable $e) {
+                    Log::channel('sync')->warning('Scheduler recovery: could not clear dispatch locks: ' . $e->getMessage());
+                }
+
+                // 2. Reset all delayed queue jobs to immediately available.
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('jobs')) {
+                        $resetCount = \Illuminate\Support\Facades\DB::table('jobs')
+                            ->where('available_at', '>', time())
+                            ->update(['available_at' => time(), 'reserved_at' => null]);
+                        Log::channel('sync')->info('Scheduler recovery: delayed jobs reset to immediate.', ['reset_count' => $resetCount]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::channel('sync')->warning('Scheduler recovery: could not reset delayed jobs: ' . $e->getMessage());
+                }
             }
 
             // --- Query: Fetch pending + zombie records ---
