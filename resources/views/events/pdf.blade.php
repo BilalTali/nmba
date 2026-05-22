@@ -382,13 +382,12 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 7%;">ID</th>
-                <th style="width: 25%;">Event Details</th>
-                <th style="width: 20%;">Venue & Location</th>
-                <th style="width: 12%;">Date</th>
-                <th style="width: 10%;">Headcount</th>
+                <th style="width: 8%;">ID</th>
+                <th style="width: 27%;">Event Details</th>
+                <th style="width: 22%;">Venue & Location</th>
+                <th style="width: 14%;">Date</th>
+                <th style="width: 11%;">Headcount</th>
                 <th style="width: 18%;">Coordinator</th>
-                <th style="width: 8%;">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -470,19 +469,10 @@
                             <div class="text-slate-500" style="font-size: 10px; margin-top: 2px;">Call: {{ $event->event_coordinator_contact_number }}</div>
                         </div>
                     </td>
-                    <td>
-                        @if($event->sync_status === 'synced')
-                            <span class="badge badge-status">Synced</span>
-                        @elseif($event->sync_status === 'failed_permanently')
-                            <span class="badge badge-status-failed">Failed</span>
-                        @else
-                            <span class="badge badge-status-pending">Pending</span>
-                        @endif
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted); font-style: italic;">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted); font-style: italic;">
                         No campaign records found matching the active directory query parameters.
                     </td>
                 </tr>

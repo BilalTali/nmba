@@ -208,15 +208,16 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
             header={
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>
                             {isDistrictAdmin ? 'District Admin Overview' : 'Event Creator Portal'}
                         </h2>
-                        <p className="text-sm font-medium text-slate-500 mt-1">Manage and synchronize your Nasha Mukt Abhiyaan events.</p>
+                        <p className="text-sm font-medium text-slate-500 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>Manage and synchronize your Nasha Mukt Abhiyaan events.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <a
                             href={route('events.create')}
-                            className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all text-sm flex items-center gap-2"
+                            className="px-4 py-2 bg-emerald-650 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 transition-all text-sm flex items-center gap-2 border border-emerald-600/30 hover:scale-[1.02] active:scale-[0.98] duration-150"
+                            style={{ fontFamily: "'Outfit', sans-serif" }}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
                             Create Event
@@ -226,15 +227,17 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                 className={`px-4 py-2 font-bold rounded-xl transition-all text-sm flex items-center gap-2 shadow-sm border ${
                                     isSidebarOpen
-                                        ? 'bg-slate-800 text-white border-slate-800'
-                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                        ? 'bg-slate-900 text-white border-slate-900'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                 }`}
-                                title="Open admin actions &amp; settings"
+                                style={{ fontFamily: "'Outfit', sans-serif" }}
+                                title="Open admin actions & settings"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                Actions
+                                Sync Console
                             </button>
                         )}
                     </div>
@@ -244,8 +247,47 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
             <Head title="Dashboard | Nasha Mukt J&K" />
 
             <div className="flex relative bg-slate-50 min-h-screen">
-                <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'sm:mr-80' : ''}`}>
-                    <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
+                <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'lg:mr-80' : ''}`}>
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
+
+                        {/* Elegant Dark Welcome Hero Banner */}
+                        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 text-white shadow-xl border border-slate-800">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                            <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
+                            
+                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div className="space-y-2.5 max-w-2xl">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-xs font-bold uppercase tracking-wider">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        Active Control Console
+                                    </div>
+                                    <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                        Nasha Mukt Bharat Abhiyaan
+                                    </h1>
+                                    <p className="text-slate-400 font-medium leading-relaxed text-sm md:text-base" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                        Welcome back, <span className="text-slate-100 font-bold">{auth.user.name}</span>. Oversee the synchronization, diagnostic health logs, and real-time observability of District Budgam's drug-free campaign events.
+                                    </p>
+                                </div>
+                                <div className="flex flex-row md:flex-col gap-3.5 w-full md:w-auto shrink-0 border-t border-slate-800/80 md:border-t-0 pt-4 md:pt-0">
+                                    <div className="flex-1 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 min-w-[140px] text-center">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Auto Sync Mode</span>
+                                        <div className="mt-1.5 flex items-center justify-center gap-1.5">
+                                            <span className={`h-2.5 w-2.5 rounded-full ${healthState.auto_sync_paused ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+                                            <span className="font-extrabold text-sm">{healthState.auto_sync_paused ? 'PAUSED' : 'ACTIVE'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 min-w-[140px] text-center">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Portal Target</span>
+                                        <div className="mt-1.5 font-mono font-bold text-slate-200 text-xs truncate max-w-[140px] mx-auto">
+                                            {portalConfig.portal_url ? new URL(portalConfig.portal_url).hostname : 'nashamuktjk.org'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Invalid Credentials Premium Alert */}
                         {isDistrictAdmin && healthState.portal_credentials_invalid && (
@@ -257,15 +299,16 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         </svg>
                                     </div>
                                     <div className="space-y-1">
-                                        <h4 className="text-rose-950 font-extrabold text-lg tracking-tight">Sync Paused: Invalid Portal Credentials Detected!</h4>
-                                        <p className="text-slate-600 text-sm font-medium leading-relaxed">
+                                        <h4 className="text-rose-950 font-extrabold text-lg tracking-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>Sync Paused: Invalid Portal Credentials Detected!</h4>
+                                        <p className="text-slate-600 text-sm font-medium leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
                                             Automatic synchronization has been globally paused to prevent the target portal from blacklisting your IP address. Please update your API ID or password in the configuration panel to resume synchronization.
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setIsSidebarOpen(true)}
-                                    className="px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-600/20 transition-all flex items-center gap-2 shrink-0 hover:scale-105 duration-200"
+                                    className="px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-sm font-black rounded-xl shadow-lg shadow-rose-650/20 transition-all flex items-center gap-2 shrink-0 hover:scale-[1.03] duration-200"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -275,11 +318,14 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             </div>
                         )}
 
-                        {/* SRE Portal Health & Uptime Dashboard */}
+                        {/* SRE Portal Health & Uptime Observatory Dashboard */}
                         {isDistrictAdmin && (
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-6">
+                            <div className="bg-slate-950 rounded-3xl border border-slate-900 shadow-2xl p-6 space-y-6 text-white relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                                <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
+
                                 {/* Header Block */}
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 border-b border-slate-850 pb-5">
                                     <div className="flex items-center gap-3.5">
                                         {/* Pulsing state circle */}
                                         <div className="relative flex h-5 w-5 shrink-0">
@@ -290,42 +336,45 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sync Target Portal</span>
-                                                <span className="font-mono text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">nashamuktjk.org</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sync Target Portal</span>
+                                                <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-350">
+                                                    {portalConfig.portal_url ? new URL(portalConfig.portal_url).hostname : 'nashamuktjk.org'}
+                                                </span>
                                             </div>
-                                            <h4 className="text-lg font-black text-slate-800 tracking-tight mt-0.5">
+                                            <h4 className="text-lg font-black tracking-tight mt-0.5 text-slate-100 font-outfit" style={{ fontFamily: "'Outfit', sans-serif" }}>
                                                 {healthState.status === 'probing' && 'Initializing active health probing...'}
-                                                {healthState.status === 'offline' && <span className="text-rose-600">Offline (Timeout or 522 Cloudflare Error)</span>}
+                                                {healthState.status === 'offline' && <span className="text-rose-450">Offline (Timeout or 522 Cloudflare Error)</span>}
                                                 {healthState.status === 'online' && (
                                                     healthState.auto_sync_paused 
-                                                        ? <span className="text-amber-600">Online — Auto-Sync Paused ({healthState.pending_count} pending)</span>
-                                                        : <span className="text-emerald-600">Online — Operational {healthState.triggered_sync && `(Syncing ${healthState.pending_count} events)`}</span>
+                                                        ? <span className="text-amber-450 font-bold">Online — Auto-Sync Paused ({healthState.pending_count} pending)</span>
+                                                        : <span className="text-emerald-405 font-bold">Online — Operational {healthState.triggered_sync && `(Syncing ${healthState.pending_count} events)`}</span>
                                                 )}
                                             </h4>
                                         </div>
                                     </div>
 
                                     {/* Right Side: Uptime Percentage & Filter buttons */}
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto self-stretch md:self-auto justify-between md:justify-end">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full md:w-auto self-stretch md:self-auto justify-between md:justify-end">
                                         <div className="flex flex-col items-start sm:items-end">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Portal Uptime</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Portal Uptime</span>
                                             <div className="flex items-baseline gap-1.5 mt-0.5">
-                                                <span className="text-2xl font-black text-slate-800 font-mono tracking-tight">{overallUptime.toFixed(2)}%</span>
-                                                <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100 uppercase tracking-wide">24h Base</span>
+                                                <span className="text-2xl font-black text-slate-100 font-mono tracking-tight">{overallUptime.toFixed(2)}%</span>
+                                                <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase tracking-wide">24h Base</span>
                                             </div>
                                         </div>
 
-                                        <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
+                                        <div className="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800">
                                             {[
-                                                { id: '6h', label: '6 Hours' },
-                                                { id: '12h', label: '12 Hours' },
-                                                { id: '24h', label: '24 Hours' }
+                                                { id: '6h', label: '6h' },
+                                                { id: '12h', label: '12h' },
+                                                { id: '24h', label: '24h' }
                                             ].map(range => (
                                                 <button
                                                     key={range.id}
                                                     type="button"
                                                     onClick={() => setUptimeRange(range.id)}
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${uptimeRange === range.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${uptimeRange === range.id ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                                 >
                                                     {range.label}
                                                 </button>
@@ -335,7 +384,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 </div>
 
                                 {/* Uptime Timeline Grid (48 rounded pills) */}
-                                <div className="space-y-3">
+                                <div className="space-y-3 relative z-10">
                                     {/* Interactive Timeline Relative Container */}
                                     <div className="relative">
                                         <div 
@@ -343,19 +392,19 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             style={{ 
                                                 display: 'grid', 
                                                 gridTemplateColumns: 'repeat(48, minmax(0, 1fr))',
-                                                gap: '3.5px'
+                                                gap: '4px'
                                             }}
                                         >
                                             {buckets.map((bucket) => {
-                                                let bgClass = 'bg-slate-200 hover:bg-slate-300';
-                                                if (bucket.status === 'online') bgClass = 'bg-emerald-500 hover:bg-emerald-400';
-                                                else if (bucket.status === 'offline') bgClass = 'bg-rose-500 hover:bg-rose-400';
-                                                else if (bucket.status === 'degraded') bgClass = 'bg-amber-500 hover:bg-amber-400';
+                                                let bgClass = 'bg-slate-850 hover:bg-slate-800';
+                                                if (bucket.status === 'online') bgClass = 'bg-emerald-505 hover:bg-emerald-500 shadow-sm shadow-emerald-500/10';
+                                                else if (bucket.status === 'offline') bgClass = 'bg-rose-505 hover:bg-rose-500 shadow-sm shadow-rose-500/10';
+                                                else if (bucket.status === 'degraded') bgClass = 'bg-amber-505 hover:bg-amber-500 shadow-sm shadow-amber-500/10';
 
                                                 return (
                                                     <div
                                                         key={bucket.id}
-                                                        className={`rounded cursor-pointer transition-all hover:scale-y-110 duration-150 relative h-full ${bgClass}`}
+                                                        className={`rounded cursor-pointer transition-all hover:scale-y-115 duration-150 relative h-full ${bgClass}`}
                                                         onMouseEnter={(e) => {
                                                             const rect = e.currentTarget.getBoundingClientRect();
                                                             const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
@@ -373,41 +422,41 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         {/* Smooth Glassmorphic Tooltip */}
                                         {hoveredBucket && (
                                             <div
-                                                className="absolute bottom-full mb-3 z-30 -translate-x-1/2 pointer-events-none transition-all duration-200 ease-out"
+                                                className="absolute bottom-full mb-3.5 z-30 -translate-x-1/2 pointer-events-none transition-all duration-200 ease-out animate-in fade-in slide-in-from-bottom-2"
                                                 style={{ left: `${hoveredBucket.left}px` }}
                                             >
-                                                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-xl p-3.5 text-white w-48 space-y-2">
-                                                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-extrabold tracking-wider border-b border-slate-700/60 pb-1.5 uppercase">
+                                                <div className="bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl shadow-2xl p-3.5 text-white w-52 space-y-2.5">
+                                                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold tracking-wider border-b border-slate-850 pb-1.5 uppercase font-mono">
                                                         <span>{hoveredBucket.startLabel} - {hoveredBucket.endLabel}</span>
-                                                        <span>Bucket #{hoveredBucket.id + 1}</span>
+                                                        <span>B#{hoveredBucket.id + 1}</span>
                                                     </div>
-                                                    <div className="space-y-1.5">
-                                                        <div className="flex justify-between items-center text-xs">
+                                                    <div className="space-y-1.5 text-xs" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                                        <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Status:</span>
-                                                            <span className={`font-black uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded ${
+                                                            <span className={`font-black uppercase tracking-wider text-[10px] px-2 py-0.5 rounded ${
                                                                 hoveredBucket.status === 'online' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                                hoveredBucket.status === 'offline' ? 'bg-rose-500/20 text-rose-400' :
-                                                                hoveredBucket.status === 'degraded' ? 'bg-amber-500/20 text-amber-400' :
+                                                                hoveredBucket.status === 'offline' ? 'bg-rose-500/20 text-rose-450' :
+                                                                hoveredBucket.status === 'degraded' ? 'bg-amber-500/20 text-amber-450' :
                                                                 'bg-slate-500/20 text-slate-400'
                                                             }`}>
                                                                 {hoveredBucket.status === 'no_data' ? 'No Data' : hoveredBucket.status}
                                                             </span>
                                                         </div>
-                                                        <div className="flex justify-between items-center text-xs">
+                                                        <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Uptime Ratio:</span>
-                                                            <span className="font-bold font-mono">{hoveredBucket.uptime}%</span>
+                                                            <span className="font-bold font-mono text-slate-205">{hoveredBucket.uptime}%</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center text-xs">
+                                                        <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Avg Latency:</span>
                                                             <span className="font-bold font-mono text-emerald-400">{hoveredBucket.status === 'no_data' ? 'N/A' : `${hoveredBucket.latency} ms`}</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center text-xs">
+                                                        <div className="flex justify-between items-center">
                                                             <span className="text-slate-400 font-semibold">Samples:</span>
-                                                            <span className="font-bold font-mono">{hoveredBucket.pointCount}</span>
+                                                            <span className="font-bold font-mono text-slate-300">{hoveredBucket.pointCount}</span>
                                                         </div>
                                                     </div>
                                                     {/* Tiny tooltip arrow */}
-                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-slate-900" />
+                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-slate-950" />
                                                 </div>
                                             </div>
                                         )}
@@ -416,12 +465,12 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                     {/* Timeline Legend */}
                                     <div className="flex flex-wrap justify-between items-center gap-2 pt-1.5 text-[10px] font-bold text-slate-500">
                                         <div className="flex items-center gap-3">
-                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500"></span> 100% Operational</span>
-                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-500"></span> Degraded / Outage Spot</span>
-                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-500"></span> Full Outage</span>
-                                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-slate-200"></span> No Probe Data</span>
+                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 100% Operational</span>
+                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Degraded Spot</span>
+                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Full Outage</span>
+                                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-850"></span> No Probe Data</span>
                                         </div>
-                                        <div className="font-mono text-slate-400">
+                                        <div className="font-mono text-slate-600">
                                             Range: {uptimeRange === '24h' ? 'Last 24 Hours' : uptimeRange === '12h' ? 'Last 12 Hours' : 'Last 6 Hours'} to Now
                                         </div>
                                     </div>
@@ -431,10 +480,10 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                         {/* Quick Diagnostics & Links */}
                         {isDistrictAdmin && (
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                                <h3 className="text-slate-800 text-lg font-bold mb-4 flex items-center gap-2">
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="text-slate-800 text-lg font-bold flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                     System Diagnostics & Traffic Checks
                                 </h3>
@@ -443,7 +492,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         href="https://nashamuktjk.org/enterprise/login"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                        className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-205 group"
                                     >
                                         <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -451,8 +500,8 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             </svg>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">Target Portal</h4>
-                                            <p className="text-xs text-slate-500">Official JK Login</p>
+                                            <h4 className="text-sm font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>Target Portal</h4>
+                                            <p className="text-xs text-slate-500" style={{ fontFamily: "'Inter', sans-serif" }}>Official JK Login</p>
                                         </div>
                                     </a>
 
@@ -460,16 +509,16 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         href={route('admin.logs.sync')}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                        className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-205 group"
                                     >
-                                        <div className="p-2.5 rounded-xl bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors">
+                                        <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-700 group-hover:bg-indigo-200 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">Queue Sync Logs</h4>
-                                            <p className="text-xs text-slate-500">Real-time sync traffic</p>
+                                            <h4 className="text-sm font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>Queue Logs</h4>
+                                            <p className="text-xs text-slate-500" style={{ fontFamily: "'Inter', sans-serif" }}>Real-time traffic</p>
                                         </div>
                                     </a>
 
@@ -477,7 +526,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         href={route('admin.logs.audit')}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                        className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-205 group"
                                     >
                                         <div className="p-2.5 rounded-xl bg-purple-100 text-purple-700 group-hover:bg-purple-200 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -485,8 +534,8 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             </svg>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">Audit Reports</h4>
-                                            <p className="text-xs text-slate-500">Database hash check</p>
+                                            <h4 className="text-sm font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>Audit Reports</h4>
+                                            <p className="text-xs text-slate-500" style={{ fontFamily: "'Inter', sans-serif" }}>Database hash checks</p>
                                         </div>
                                     </a>
 
@@ -494,7 +543,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         href={route('events.check-portal')}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                        className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-205 group"
                                     >
                                         <div className="p-2.5 rounded-xl bg-amber-100 text-amber-700 group-hover:bg-amber-200 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -502,41 +551,90 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             </svg>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">API Health Probe</h4>
-                                            <p className="text-xs text-slate-500">Live JSON status check</p>
+                                            <h4 className="text-sm font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>API Health Probe</h4>
+                                            <p className="text-xs text-slate-500" style={{ fontFamily: "'Inter', sans-serif" }}>Live status JSON</p>
                                         </div>
                                     </a>
 
                                     <a
                                         href="#server-telemetry"
-                                        className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/30 hover:shadow-sm transition-all group"
+                                        className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/20 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-205 group"
                                     >
-                                        <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 group-hover:bg-slate-300 transition-colors">
+                                        <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 group-hover:bg-slate-350 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                             </svg>
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">Traffic & Server</h4>
-                                            <p className="text-xs text-slate-500">Live telemetry graphs</p>
+                                            <h4 className="text-sm font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>Telemetry Graph</h4>
+                                            <p className="text-xs text-slate-500" style={{ fontFamily: "'Inter', sans-serif" }}>Live performance grids</p>
                                         </div>
                                     </a>
                                 </div>
                             </div>
                         )}
 
-                        {/* Metrics Section */}
+                        {/* Left-Striped Metrics Section */}
                         {isDistrictAdmin && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                                 {[
-                                    { label: 'Total Events', value: metrics.total, color: 'text-slate-900', border: 'border-slate-200' },
-                                    { label: 'Successfully Synced', value: metrics.synced, color: 'text-emerald-600', border: 'border-emerald-200' },
-                                    { label: 'Pending / Syncing', value: metrics.pending + metrics.syncing, color: 'text-amber-600', border: 'border-amber-200' },
-                                    { label: 'Permanently Failed', value: metrics.failed_perm, color: 'text-rose-600', border: 'border-rose-200' }
+                                    { 
+                                        label: 'Total Events', 
+                                        value: metrics.total, 
+                                        color: 'text-slate-900', 
+                                        border: 'border-l-indigo-650', 
+                                        icon: (
+                                            <svg className="h-6 w-6 text-indigo-650" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6m-6 4h3" />
+                                            </svg>
+                                        ),
+                                        bg: 'bg-indigo-50/50' 
+                                    },
+                                    { 
+                                        label: 'Successfully Synced', 
+                                        value: metrics.synced, 
+                                        color: 'text-emerald-600', 
+                                        border: 'border-l-emerald-500', 
+                                        icon: (
+                                            <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                            </svg>
+                                        ),
+                                        bg: 'bg-emerald-50/50'
+                                    },
+                                    { 
+                                        label: 'Pending / Syncing', 
+                                        value: metrics.pending + metrics.syncing, 
+                                        color: 'text-amber-600', 
+                                        border: 'border-l-amber-500', 
+                                        icon: (
+                                            <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        ),
+                                        bg: 'bg-amber-50/50'
+                                    },
+                                    { 
+                                        label: 'Permanently Failed', 
+                                        value: metrics.failed_perm, 
+                                        color: 'text-rose-600', 
+                                        border: 'border-l-rose-500', 
+                                        icon: (
+                                            <svg className="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                        ),
+                                        bg: 'bg-rose-50/50'
+                                    }
                                 ].map((stat, i) => (
-                                    <div key={i} className={`bg-white p-6 rounded-3xl shadow-sm border ${stat.border} hover:shadow-md transition-shadow`}>
-                                        <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">{stat.label}</h3>
-                                        <p className={`text-4xl font-black ${stat.color}`}>{stat.value}</p>
+                                    <div key={i} className={`bg-white p-6 rounded-3xl shadow-sm border border-slate-200 border-l-4 ${stat.border} hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex justify-between items-center`}>
+                                        <div className="space-y-1">
+                                            <h3 className="text-slate-500 text-xs font-black uppercase tracking-wider" style={{ fontFamily: "'Outfit', sans-serif" }}>{stat.label}</h3>
+                                            <p className={`text-3xl font-black ${stat.color} font-mono`}>{stat.value}</p>
+                                        </div>
+                                        <div className={`p-3 rounded-2xl ${stat.bg}`}>
+                                            {stat.icon}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -547,25 +645,26 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             <div id="server-telemetry" className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6 scroll-mt-6">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                                     <div>
-                                        <h3 className="text-slate-800 text-lg font-extrabold tracking-tight flex items-center gap-2">
+                                        <h3 className="text-slate-800 text-lg font-extrabold tracking-tight flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
                                             <span className="relative flex h-3.5 w-3.5">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
                                             </span>
                                             Live Server Telemetry & Health Indexes
                                         </h3>
-                                        <p className="text-xs text-slate-500 font-medium mt-0.5">Real-time status indexes tracked from active server traffic.</p>
+                                        <p className="text-xs text-slate-500 font-medium mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>Real-time status indexes tracked from active server traffic.</p>
                                     </div>
                                     <div className="flex bg-slate-100 p-1.5 rounded-xl gap-1">
                                         {[
                                             { id: 'performance', label: 'Performance' },
                                             { id: 'resources', label: 'Resources' },
-                                            { id: 'queue', label: 'Portal Uptime & Sync Queue' }
+                                            { id: 'queue', label: 'Uptime & Sync Queue' }
                                         ].map(tab => (
                                             <button
                                                 key={tab.id}
                                                 onClick={() => setActiveTelemetryTab(tab.id)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTelemetryTab === tab.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${activeTelemetryTab === tab.id ? 'bg-white text-slate-850 shadow-sm border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                                                style={{ fontFamily: "'Outfit', sans-serif" }}
                                             >
                                                 {tab.label}
                                             </button>
@@ -576,22 +675,22 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 {/* Live Value Badges */}
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                                     {[
-                                        { label: 'CPU Load', value: `${(telemetry[telemetry.length - 1]?.cpu ?? 0.0).toFixed(2)}`, desc: 'Average index', color: 'text-indigo-600', bg: 'bg-indigo-50/50' },
-                                        { label: 'Memory Usage', value: `${(telemetry[telemetry.length - 1]?.memory ?? 0).toFixed(0)} MB`, desc: 'Allocated heap', color: 'text-sky-600', bg: 'bg-sky-50/50' },
+                                        { label: 'CPU Load', value: `${(telemetry[telemetry.length - 1]?.cpu ?? 0.0).toFixed(2)}`, desc: 'Average index', color: 'text-indigo-650', bg: 'bg-indigo-50/50' },
+                                        { label: 'Memory Usage', value: `${(telemetry[telemetry.length - 1]?.memory ?? 0).toFixed(0)} MB`, desc: 'Allocated heap', color: 'text-sky-650', bg: 'bg-sky-50/50' },
                                         { label: 'Disk Space', value: `${(telemetry[telemetry.length - 1]?.disk ?? 0).toFixed(1)}%`, desc: 'Used capacity', color: 'text-amber-600', bg: 'bg-amber-50/50' },
-                                        { label: 'Portal Status', value: telemetry[telemetry.length - 1]?.is_online ? 'ONLINE' : 'OFFLINE', desc: 'nashamuktjk.org', color: telemetry[telemetry.length - 1]?.is_online ? 'text-emerald-600' : 'text-rose-600 font-extrabold', bg: telemetry[telemetry.length - 1]?.is_online ? 'bg-emerald-50/50' : 'bg-rose-50/50 animate-pulse' },
-                                        { label: 'Pending Jobs', value: `${(telemetry[telemetry.length - 1]?.pending ?? 0)}`, desc: 'In queue', color: 'text-rose-600', bg: 'bg-rose-50/50' }
+                                        { label: 'Portal Status', value: telemetry[telemetry.length - 1]?.is_online ? 'ONLINE' : 'OFFLINE', desc: 'nashamuktjk.org', color: telemetry[telemetry.length - 1]?.is_online ? 'text-emerald-600' : 'text-rose-650 font-extrabold', bg: telemetry[telemetry.length - 1]?.is_online ? 'bg-emerald-50/50' : 'bg-rose-50/50 animate-pulse' },
+                                        { label: 'Pending Jobs', value: `${(telemetry[telemetry.length - 1]?.pending ?? 0)}`, desc: 'In queue', color: 'text-rose-650', bg: 'bg-rose-50/50' }
                                     ].map((badge, i) => (
                                         <div key={i} className={`p-4 rounded-2xl border border-slate-100 ${badge.bg} transition-all`}>
-                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{badge.label}</span>
-                                            <h4 className={`text-lg font-black ${badge.color} mt-1`}>{badge.value}</h4>
-                                            <p className="text-[10px] font-medium text-slate-500 mt-0.5">{badge.desc}</p>
+                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400" style={{ fontFamily: "'Outfit', sans-serif" }}>{badge.label}</span>
+                                            <h4 className={`text-lg font-black ${badge.color} mt-1 font-mono`}>{badge.value}</h4>
+                                            <p className="text-[10px] font-medium text-slate-500 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>{badge.desc}</p>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Dynamic Recharts Graph */}
-                                <div className="h-72">
+                                {/* Dynamic Recharts Area Chart */}
+                                <div className="h-72 border border-slate-100 rounded-2xl p-4 bg-slate-50/50">
                                     {telemetry.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <AreaChart 
@@ -599,20 +698,20 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                     ...t,
                                                     portal_status_num: t.is_online ? 1 : 0
                                                 }))} 
-                                                margin={{ top: 10, right: 25, left: -10, bottom: 0 }}
+                                                margin={{ top: 10, right: 15, left: -20, bottom: 0 }}
                                             >
                                                 <defs>
                                                     <linearGradient id="telemetryPerfGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
                                                     </linearGradient>
                                                     <linearGradient id="telemetryResGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4}/>
-                                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                                                        <stop offset="5%" stopColor="#0284c7" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
                                                     </linearGradient>
                                                     <linearGradient id="telemetryQueueGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4}/>
-                                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                                        <stop offset="5%" stopColor="#e11d48" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#e11d48" stopOpacity={0}/>
                                                     </linearGradient>
                                                     <linearGradient id="telemetryOnlineGrad" x1="0" y1="0" x2="0" y2="1">
                                                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -624,21 +723,21 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                 
                                                 {activeTelemetryTab === 'performance' && (
                                                     <>
-                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#3b82f6', fontSize: 11}} unit="ms" />
+                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#4f46e5', fontSize: 11}} unit="ms" />
                                                         <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{fill: '#10b981', fontSize: 11}} />
-                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                        <Area yAxisId="left" type="monotone" dataKey="latency" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryPerfGrad)" name="Latency (ms)" />
-                                                        <Area yAxisId="right" type="monotone" dataKey="cpu" stroke="#10b981" strokeWidth={2.5} fillOpacity={0} name="CPU Load" />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontFamily: "'Inter', sans-serif" }} />
+                                                        <Area yAxisId="left" type="monotone" dataKey="latency" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryPerfGrad)" name="Latency (ms)" />
+                                                        <Area yAxisId="right" type="monotone" dataKey="cpu" stroke="#10b981" strokeWidth={2} fillOpacity={0} name="CPU Load" />
                                                     </>
                                                 )}
 
                                                 {activeTelemetryTab === 'resources' && (
                                                     <>
-                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#0ea5e9', fontSize: 11}} unit="M" />
-                                                        <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{fill: '#f59e0b', fontSize: 11}} unit="%" />
-                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                        <Area yAxisId="left" type="monotone" dataKey="memory" stroke="#0ea5e9" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryResGrad)" name="Memory Usage (MB)" />
-                                                        <Area yAxisId="right" type="monotone" dataKey="disk" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={0} name="Disk Space (%)" />
+                                                        <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{fill: '#0284c7', fontSize: 11}} unit="M" />
+                                                        <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{fill: '#d97706', fontSize: 11}} unit="%" />
+                                                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontFamily: "'Inter', sans-serif" }} />
+                                                        <Area yAxisId="left" type="monotone" dataKey="memory" stroke="#0284c7" strokeWidth={2.5} fillOpacity={1} fill="url(#telemetryResGrad)" name="Memory (MB)" />
+                                                        <Area yAxisId="right" type="monotone" dataKey="disk" stroke="#d97706" strokeWidth={2} fillOpacity={0} name="Disk Space (%)" />
                                                     </>
                                                 )}
 
@@ -648,21 +747,21 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                             yAxisId="left" 
                                                             tickLine={false} 
                                                             axisLine={false} 
-                                                            tick={{fill: '#f43f5e', fontSize: 11}} 
-                                                            label={{ value: 'Pending Events (Left)', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#f43f5e', fontSize: 10, fontWeight: 'bold' } }}
+                                                            tick={{fill: '#e11d48', fontSize: 11}} 
+                                                            label={{ value: 'Pending Events', angle: -90, position: 'insideLeft', offset: -10, style: { fill: '#e11d48', fontSize: 9, fontWeight: 'bold' } }}
                                                         />
                                                         <YAxis 
                                                             yAxisId="right" 
                                                             orientation="right" 
                                                             domain={[0, 1]} 
                                                             tickCount={2}
-                                                            tickFormatter={(value) => value === 1 ? 'ONLINE' : 'OFFLINE'}
+                                                            tickFormatter={(value) => value === 1 ? 'UP' : 'DOWN'}
                                                             tickLine={false} 
                                                             axisLine={false} 
                                                             tick={{fill: '#10b981', fontSize: 10, fontWeight: 'bold'}} 
                                                         />
                                                         <Tooltip 
-                                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontFamily: "'Inter', sans-serif" }}
                                                             formatter={(value, name) => {
                                                                 if (name === 'Portal Status') {
                                                                     return [value === 1 ? 'ONLINE (Up)' : 'OFFLINE (Down)', name];
@@ -674,7 +773,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                             yAxisId="left" 
                                                             type="monotone" 
                                                             dataKey="pending" 
-                                                            stroke="#f43f5e" 
+                                                            stroke="#e11d48" 
                                                             strokeWidth={2.5} 
                                                             fillOpacity={0.3} 
                                                             fill="url(#telemetryQueueGrad)" 
@@ -695,11 +794,11 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 animate-spin text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 animate-spin text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                             </svg>
-                                            <p className="text-xs font-semibold">Populating live health telemetry logs...</p>
+                                            <p className="text-xs font-semibold" style={{ fontFamily: "'Inter', sans-serif" }}>Populating live health telemetry logs...</p>
                                         </div>
                                     )}
                                 </div>
@@ -710,9 +809,9 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                         {isDistrictAdmin && (
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Sync Status Pie */}
-                                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1">
-                                    <h3 className="text-slate-800 text-lg font-bold mb-4">Sync Status</h3>
-                                    <div className="h-64">
+                                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1 flex flex-col justify-between">
+                                    <h3 className="text-slate-800 text-lg font-bold mb-4" style={{ fontFamily: "'Outfit', sans-serif" }}>Sync Status Distribution</h3>
+                                    <div className="h-64 relative flex items-center justify-center">
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                             <PieChart>
                                                 <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5}>
@@ -720,14 +819,14 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                         <Cell key={`cell-${index}`} fill={entry.fill} />
                                                     ))}
                                                 </Pie>
-                                                <Tooltip />
+                                                <Tooltip contentStyle={{ borderRadius: '10px', fontFamily: "'Inter', sans-serif" }} />
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
-                                    <div className="flex flex-wrap justify-center gap-4 mt-2">
+                                    <div className="flex flex-wrap justify-center gap-3.5 mt-2 border-t border-slate-100 pt-4">
                                         {statusData.map(entry => (
-                                            <div key={entry.name} className="flex items-center gap-1.5 text-sm font-medium text-slate-600">
-                                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }}></div>
+                                            <div key={entry.name} className="flex items-center gap-1.5 text-xs font-bold text-slate-650" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.fill }}></div>
                                                 {entry.name} ({entry.value})
                                             </div>
                                         ))}
@@ -736,20 +835,20 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                                 {/* Events Over Time Area */}
                                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1 lg:col-span-2">
-                                    <h3 className="text-slate-800 text-lg font-bold mb-4">Events Over Last 30 Days</h3>
+                                    <h3 className="text-slate-800 text-lg font-bold mb-4" style={{ fontFamily: "'Outfit', sans-serif" }}>Campaign Events Trend (Last 30 Days)</h3>
                                     <div className="h-64">
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                                            <AreaChart data={eventsOverTime} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <AreaChart data={eventsOverTime} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                                                 <defs>
                                                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.35}/>
                                                         <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                                     </linearGradient>
                                                 </defs>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                                                <YAxis tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 11}} />
+                                                <YAxis tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 11}} />
+                                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontFamily: "'Inter', sans-serif" }} />
                                                 <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
                                             </AreaChart>
                                         </ResponsiveContainer>
@@ -758,15 +857,15 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                                 {/* Events By Block Bar */}
                                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 col-span-1 lg:col-span-3">
-                                    <h3 className="text-slate-800 text-lg font-bold mb-4">Events by Block</h3>
+                                    <h3 className="text-slate-800 text-lg font-bold mb-4" style={{ fontFamily: "'Outfit', sans-serif" }}>Events by Block Jurisdiction</h3>
                                     <div className="h-72">
                                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                                            <BarChart data={eventsByBlock} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                                            <BarChart data={eventsByBlock} margin={{ top: 10, right: 10, left: -25, bottom: 20 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                                <XAxis dataKey="name" angle={-45} textAnchor="end" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 12}} height={60} />
-                                                <YAxis tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                                                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                                <XAxis dataKey="name" angle={-45} textAnchor="end" tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 11}} height={65} />
+                                                <YAxis tickLine={false} axisLine={false} tick={{fill: '#64748b', fontSize: 11}} />
+                                                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontFamily: "'Inter', sans-serif" }} />
+                                                <Bar dataKey="count" fill="#4f46e5" radius={[5, 5, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -774,59 +873,63 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             </div>
                         )}
 
-                        {/* Table Section */}
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                                <h3 className="text-xl font-bold text-slate-800">Recent Events</h3>
+                        {/* Recent Events Table Card */}
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+                                <h3 className="text-xl font-bold text-slate-800" style={{ fontFamily: "'Outfit', sans-serif" }}>Recent Events Log</h3>
                                 <div className="flex flex-wrap gap-3 w-full md:w-auto">
                                     <input
                                         type="date"
                                         value={filterDate}
                                         onChange={e => setFilterDate(e.target.value)}
-                                        className="rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm w-full sm:w-auto bg-slate-50 py-2.5 px-4"
+                                        className="rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm w-full sm:w-auto bg-slate-50/70 py-2.5 px-4 font-medium transition-all"
+                                        style={{ fontFamily: "'Inter', sans-serif" }}
                                     />
                                     <select
                                         value={filterStatus}
                                         onChange={e => setFilterStatus(e.target.value)}
-                                        className="rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm w-full sm:w-auto bg-slate-50 py-2.5 px-4 font-medium text-slate-700"
+                                        className="rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm w-full sm:w-auto bg-slate-50/70 py-2.5 px-4 font-bold text-slate-700 transition-all cursor-pointer"
+                                        style={{ fontFamily: "'Outfit', sans-serif" }}
                                     >
                                         <option value="">All Statuses</option>
-                                        <option value="synced">Synced</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="failed_permanently">Failed</option>
+                                        <option value="synced">Synced Only</option>
+                                        <option value="pending">Pending Only</option>
+                                        <option value="failed_permanently">Failed Only</option>
                                     </select>
                                 </div>
                             </div>
 
-                        {/* Mobile Card View (xs screens) */}
-                            <div className="block sm:hidden space-y-3">
+                            {/* Mobile Card View (xs screens) */}
+                            <div className="block sm:hidden space-y-4">
                                 {filteredEvents.map(event => (
-                                    <div key={event.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                    <div key={event.id} className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200 space-y-4">
                                         <div className="flex justify-between items-start gap-2">
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-slate-900 text-sm truncate">{event.event_name}</p>
-                                                <p className="text-xs text-slate-500 mt-0.5 truncate">{event.event_venue}</p>
-                                                <p className="text-xs text-slate-400 mt-1">{new Date(event.event_date).toLocaleDateString()}</p>
+                                                <p className="font-bold text-slate-900 text-sm truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>{event.event_name}</p>
+                                                <p className="text-xs text-slate-500 mt-0.5 truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{event.event_venue}</p>
+                                                <p className="text-xs text-slate-400 mt-1 font-mono">{new Date(event.event_date).toLocaleDateString('en-IN')}</p>
                                             </div>
-                                            <span className={`shrink-0 px-3 py-1 text-xs leading-5 font-bold rounded-full shadow-sm
-                                                ${event.sync_status === 'synced' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                                                event.sync_status === 'pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                                                'bg-rose-100 text-rose-800 border border-rose-200'}`}>
-                                                {event.sync_status.replace('_', ' ').toUpperCase()}
+                                            <span className={`shrink-0 px-3 py-1 text-[10px] leading-5 font-black rounded-full shadow-sm uppercase tracking-wider border
+                                                ${event.sync_status === 'synced' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                                                event.sync_status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                                                'bg-rose-50 text-rose-800 border-rose-200'}`}>
+                                                {event.sync_status.replace('_', ' ')}
                                             </span>
                                         </div>
                                         {isDistrictAdmin && (
-                                            <div className="mt-3 pt-3 border-t border-slate-200 flex gap-3">
+                                            <div className="pt-3.5 border-t border-slate-200/80 flex gap-3">
                                                 <button
                                                     onClick={() => toggleSync(event.id)}
-                                                    className="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                                                    className="flex-1 py-2 text-xs font-bold rounded-lg bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 transition-colors shadow-sm"
+                                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                                 >
-                                                    Toggle
+                                                    Toggle Sync
                                                 </button>
                                                 {event.sync_status !== 'synced' && (
                                                     <button
                                                         onClick={() => retrySync(event.id)}
-                                                        className="flex-1 py-1.5 text-xs font-bold rounded-lg bg-teal-50 border border-teal-200 text-teal-700 hover:bg-teal-100 transition-colors"
+                                                        className="flex-1 py-2 text-xs font-bold rounded-lg bg-teal-50 border border-teal-200 text-teal-700 hover:bg-teal-100 transition-colors shadow-sm"
+                                                        style={{ fontFamily: "'Outfit', sans-serif" }}
                                                     >
                                                         Retry
                                                     </button>
@@ -840,45 +943,61 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4 text-slate-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                                         </div>
-                                        <p className="text-slate-500 font-medium text-sm">No events found matching criteria.</p>
+                                        <p className="text-slate-500 font-medium text-sm">No events found matching active query.</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Desktop Table View */}
-                            <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-100">
-                                <table className="min-w-full divide-y divide-slate-100">
+                            <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-150">
+                                <table className="min-w-full divide-y divide-slate-150">
                                     <thead className="bg-slate-50">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Date</th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Event Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Venue</th>
-                                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Status</th>
-                                            {isDistrictAdmin && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</th>}
+                                            <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Date</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Event Name</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Venue</th>
+                                            <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Sync Status</th>
+                                            {isDistrictAdmin && <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Actions</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-100">
                                         {filteredEvents.map(event => (
-                                            <tr key={event.id} className="hover:bg-slate-50/80 transition-colors group">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">{new Date(event.event_date).toLocaleDateString()}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{event.event_name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{event.event_venue}</td>
+                                            <tr key={event.id} className="hover:bg-slate-50/70 transition-colors duration-150 group">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-600 font-mono">
+                                                    {new Date(event.event_date).toLocaleDateString('en-IN')}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-slate-900" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                                    {event.event_name}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                                    {event.event_venue}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span
-                                                        className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full cursor-help shadow-sm
-                                                        ${event.sync_status === 'synced' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                                                        event.sync_status === 'pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                                                        'bg-rose-100 text-rose-800 border border-rose-200'}`}
+                                                        className={`px-3.5 py-1 inline-flex text-[10px] leading-5 font-extrabold rounded-full cursor-help shadow-sm border uppercase tracking-wider
+                                                        ${event.sync_status === 'synced' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                                                        event.sync_status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                                                        'bg-rose-50 text-rose-800 border-rose-200'}`}
                                                         title={event.last_error_log || (event.sync_status === 'pending' ? 'Waiting in queue...' : 'Synced')}
                                                     >
-                                                        {event.sync_status.replace('_', ' ').toUpperCase()}
+                                                        {event.sync_status.replace('_', ' ')}
                                                     </span>
                                                 </td>
                                                 {isDistrictAdmin && (
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                                                        <button onClick={() => toggleSync(event.id)} className="text-slate-500 hover:text-slate-900 mr-4 transition-colors">Toggle</button>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                                        <button 
+                                                            onClick={() => toggleSync(event.id)} 
+                                                            className="text-slate-500 hover:text-slate-900 mr-4 transition-colors hover:scale-105 duration-100"
+                                                        >
+                                                            Toggle Sync
+                                                        </button>
                                                         {event.sync_status !== 'synced' && (
-                                                            <button onClick={() => retrySync(event.id)} className="text-teal-600 hover:text-teal-900 transition-colors">Retry</button>
+                                                            <button 
+                                                                onClick={() => retrySync(event.id)} 
+                                                                className="text-teal-650 hover:text-teal-900 transition-colors hover:scale-105 duration-100"
+                                                            >
+                                                                Retry
+                                                            </button>
                                                         )}
                                                     </td>
                                                 )}
@@ -890,7 +1009,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4 text-slate-400">
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                                                     </div>
-                                                    <p className="text-slate-500 font-medium">No events found matching criteria.</p>
+                                                    <p className="text-slate-500 font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>No events found matching active query.</p>
                                                 </td>
                                             </tr>
                                         )}
@@ -901,57 +1020,58 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                     </div>
                 </div>
 
-            {/* Mobile Sidebar Backdrop */}
+                {/* Mobile Sidebar Backdrop */}
                 {isDistrictAdmin && isSidebarOpen && (
                     <div
-                        className="fixed inset-0 bg-black/40 z-40 sm:hidden"
+                        className="fixed inset-0 bg-black/55 z-40 lg:hidden backdrop-blur-sm"
                         onClick={() => setIsSidebarOpen(false)}
                         aria-hidden="true"
                     />
                 )}
 
-                {/* Settings Sidebar — full-width on mobile, fixed 320px on desktop */}
+                {/* Highly Polished Settings Sidebar — full-width on mobile, fixed 320px on desktop */}
                 {isDistrictAdmin && (
-                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-300 ease-in-out z-50 pt-16 overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                        <div className="p-5">
+                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-slate-900 shadow-2xl border-l border-slate-800 transform transition-transform duration-300 ease-in-out z-50 pt-16 overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} text-white`}>
+                        <div className="p-6 space-y-6">
                             {/* Sidebar header */}
-                            <div className="flex justify-between items-center mb-5">
-                                <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                                <h3 className="text-lg font-black text-slate-100 flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                                     </svg>
-                                    Admin Actions
+                                    Sync Console
                                 </h3>
-                                <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-450 hover:bg-slate-700 hover:text-white transition-all">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
 
-                            {/* ── Quick Actions ── */}
-                            <div className="space-y-2 mb-5">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 mb-3">Quick Actions</p>
+                            {/* Quick Actions List */}
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Control Operations</p>
 
                                 <button
                                     onClick={toggleAutoSync}
                                     disabled={processing}
-                                    className={`w-full py-3 px-4 font-bold rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm border ${
+                                    className={`w-full py-3 px-4 font-black rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-md ${
                                         healthState.auto_sync_paused
-                                            ? 'bg-emerald-600 text-white hover:bg-emerald-500 border-emerald-600'
-                                            : 'bg-amber-600 text-white hover:bg-amber-500 border-amber-600'
+                                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/10'
+                                            : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/10'
                                     }`}
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     {healthState.auto_sync_paused ? (
                                         <>
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Resume Auto-Sync
                                         </>
                                     ) : (
                                         <>
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Pause Auto-Sync
                                         </>
@@ -961,30 +1081,32 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 <button
                                     onClick={forceSyncQueue}
                                     disabled={processing}
-                                    className="w-full py-3 px-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                    className="w-full py-3 px-4 bg-slate-800 text-white font-black rounded-xl hover:bg-slate-750 transition-all flex items-center gap-3 text-sm disabled:opacity-50 border border-slate-700 shadow-sm"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
-                                    Force Sync
+                                    Force Sync Queue
                                 </button>
 
                                 <button
                                     onClick={runQueueWorker}
                                     disabled={processing}
-                                    className="w-full py-3 px-4 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                    className="w-full py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm shadow-sky-600/10"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                     </svg>
-                                    Work Queue
+                                    Trigger Queue Worker
                                 </button>
 
                                 <button
                                     onClick={resetFailedSyncs}
                                     disabled={processing}
-                                    className="w-full py-3 px-4 bg-amber-600 text-white font-bold rounded-xl hover:bg-amber-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                    className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm shadow-amber-600/10"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -994,29 +1116,32 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                                 <a
                                     href={route('events.export')}
-                                    className="w-full py-3 px-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-all flex items-center gap-3 text-sm shadow-sm"
+                                    className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl transition-all flex items-center justify-center gap-3 text-sm shadow-md shadow-indigo-600/10"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    Export CSV
+                                    Export CSV Report
                                 </a>
 
                                 <button
                                     onClick={clearQueue}
                                     disabled={processing}
-                                    className="w-full py-3 px-4 bg-rose-700 text-white font-bold rounded-xl hover:bg-rose-600 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                    className="w-full py-3 px-4 bg-rose-700 hover:bg-rose-600 text-white font-black rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm shadow-rose-700/10"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    Clear Queue
+                                    Clear Queue Logs
                                 </button>
 
                                 <button
                                     onClick={() => post(route('events.purge-media'))}
                                     disabled={processing}
-                                    className="w-full py-3 px-4 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                    className="w-full py-3 px-4 bg-rose-650 hover:bg-rose-550 text-white font-black rounded-xl transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm shadow-rose-600/10"
+                                    style={{ fontFamily: "'Outfit', sans-serif" }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1025,77 +1150,82 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                                 </button>
                             </div>
 
-                            <div className="border-t border-slate-100 pt-5">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 mb-4">Settings</p>
+                            {/* Credentials Settings Form */}
+                            <div className="border-t border-slate-800 pt-5 space-y-4">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Settings & Auth</p>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h4 className="text-xs font-black text-emerald-600 mb-4 uppercase tracking-widest">Portal API Credentials</h4>
-                                <form onSubmit={submitEnv} className="space-y-5">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Portal URL</label>
-                                        <input
-                                            type="url"
-                                            value={data.portal_url}
-                                            onChange={e => setData('portal_url', e.target.value)}
-                                            className="block w-full rounded-xl border-slate-200 bg-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2.5 px-4"
-                                            placeholder="https://example.com"
-                                            required
-                                        />
-                                        {errors.portal_url && <p className="text-rose-500 text-xs mt-1 font-medium">{errors.portal_url}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">API ID</label>
-                                        <input
-                                            type="text"
-                                            value={data.admin_id}
-                                            onChange={e => setData('admin_id', e.target.value)}
-                                            className="block w-full rounded-xl border-slate-200 bg-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2.5 px-4"
-                                            placeholder="Enter API ID"
-                                        />
-                                        {errors.admin_id && <p className="text-rose-500 text-xs mt-1 font-medium">{errors.admin_id}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">API Password</label>
-                                        <div className="relative">
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-850 space-y-4">
+                                    <h4 className="text-xs font-black text-emerald-500 uppercase tracking-widest" style={{ fontFamily: "'Outfit', sans-serif" }}>Portal Credentials</h4>
+                                    <form onSubmit={submitEnv} className="space-y-4.5">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Portal URL</label>
                                             <input
-                                                type={showPassword ? "text" : "password"}
-                                                value={data.admin_password}
-                                                onChange={e => setData('admin_password', e.target.value)}
-                                                className="block w-full rounded-xl border-slate-200 bg-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2.5 px-4 pr-10"
-                                                placeholder="Enter Password"
+                                                type="url"
+                                                value={data.portal_url}
+                                                onChange={e => setData('portal_url', e.target.value)}
+                                                className="block w-full rounded-xl border-slate-800 bg-slate-900 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2.5 px-3.5 transition-all"
+                                                style={{ fontFamily: "'Inter', sans-serif" }}
+                                                placeholder="https://example.com"
+                                                required
                                             />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-emerald-600 focus:outline-none"
-                                            >
-                                                {showPassword ? (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-2.29c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                )}
-                                            </button>
+                                            {errors.portal_url && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.portal_url}</p>}
                                         </div>
-                                        {errors.admin_password && <p className="text-rose-500 text-xs mt-1 font-medium">{errors.admin_password}</p>}
-                                    </div>
-                                    {settingsSuccess && (
-                                        <p className="text-emerald-700 text-sm font-semibold bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">{settingsSuccess}</p>
-                                    )}
-                                    {settingsError && (
-                                        <p className="text-rose-600 text-sm font-medium bg-rose-50 border border-rose-200 rounded-xl px-4 py-2">{settingsError}</p>
-                                    )}
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 shadow-md shadow-emerald-500/20 transition-all disabled:opacity-50"
-                                    >
-                                        {processing ? 'Saving...' : 'Update Credentials'}
-                                    </button>
-                                </form>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">API ID</label>
+                                            <input
+                                                type="text"
+                                                value={data.admin_id}
+                                                onChange={e => setData('admin_id', e.target.value)}
+                                                className="block w-full rounded-xl border-slate-800 bg-slate-900 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2.5 px-3.5 transition-all"
+                                                style={{ fontFamily: "'Inter', sans-serif" }}
+                                                placeholder="Enter API ID"
+                                            />
+                                            {errors.admin_id && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.admin_id}</p>}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">API Password</label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    value={data.admin_password}
+                                                    onChange={e => setData('admin_password', e.target.value)}
+                                                    className="block w-full rounded-xl border-slate-800 bg-slate-900 text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2.5 px-3.5 pr-10 transition-all"
+                                                    style={{ fontFamily: "'Inter', sans-serif" }}
+                                                    placeholder="Enter Password"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-450 hover:text-emerald-500 focus:outline-none"
+                                                >
+                                                    {showPassword ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.71-2.29c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {errors.admin_password && <p className="text-rose-450 text-[10px] mt-1 font-medium">{errors.admin_password}</p>}
+                                        </div>
+                                        {settingsSuccess && (
+                                            <p className="text-emerald-400 text-xs font-semibold bg-emerald-950/40 border border-emerald-900/60 rounded-xl px-4 py-2" style={{ fontFamily: "'Inter', sans-serif" }}>{settingsSuccess}</p>
+                                        )}
+                                        {settingsError && (
+                                            <p className="text-rose-400 text-xs font-semibold bg-rose-955/40 border border-rose-900/60 rounded-xl px-4 py-2" style={{ fontFamily: "'Inter', sans-serif" }}>{settingsError}</p>
+                                        )}
+                                        <button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="w-full py-3 bg-emerald-650 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/10 transition-all disabled:opacity-50"
+                                            style={{ fontFamily: "'Outfit', sans-serif" }}
+                                        >
+                                            {processing ? 'Saving...' : 'Update API Settings'}
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 )}
             </div>
         </AuthenticatedLayout>
