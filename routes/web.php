@@ -193,6 +193,7 @@ Route::middleware(['auth', 'district_access'])->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\EventController::class, 'dashboard'])->name('dashboard');
     Route::get('/admin/synced-events', [\App\Http\Controllers\EventController::class, 'syncedEventsIndex'])->name('admin.synced-events');
+    Route::get('/admin/events/pdf', [\App\Http\Controllers\EventController::class, 'exportPdf'])->name('admin.events.pdf');
     Route::resource('users', \App\Http\Controllers\UserController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

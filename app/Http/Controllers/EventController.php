@@ -896,6 +896,36 @@ class EventController extends Controller
     }
 
     /**
+     * Export filtered events as a printable PDF view
+     */
+    public function exportPdf(\Illuminate\Http\Request $request)
+    {
+        $query = Event::orderBy('event_date', 'desc');
+        if (auth()->user() && auth()->user()->role !== 'admin') {
+            $query->where('submitted_by_user_id', auth()->id());
+        }
+
+        if ($request->filled('block_id')) {
+            $query->where('block_id', $request->block_id);
+        }
+        if ($request->filled('start_date')) {
+            $query->whereDate('event_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('event_date', '<=', $request->end_date);
+        }
+
+        $events = $query->get();
+        $blocks = $this->getBlocks();
+
+        return view('events.pdf', [
+            'events' => $events,
+            'blocks' => $blocks,
+            'filters' => $request->only(['block_id', 'start_date', 'end_date']),
+        ]);
+    }
+
+    /**
      * Export all events as CSV
      */
     public function exportCsv()
