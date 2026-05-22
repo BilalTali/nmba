@@ -331,7 +331,18 @@
     <!-- Filter Context Summary -->
     <section class="filter-summary">
         <div class="filter-tag">
-            Jurisdiction Block: <strong>{{ !empty($filters['block_id']) ? ($blocks[$filters['block_id']] ?? 'Unknown') : 'All Blocks' }}</strong>
+            Jurisdiction Block: 
+            <strong>
+                @if(!empty($filters['block_id']))
+                    @if(is_numeric($filters['block_id']))
+                        {{ $blocks[$filters['block_id']] ?? 'Unknown' }}
+                    @else
+                        {{ $filters['block_id'] }}
+                    @endif
+                @else
+                    All Blocks
+                @endif
+            </strong>
         </div>
         <div class="filter-tag">
             Date Range: 
@@ -347,6 +358,21 @@
                 @endif
             </strong>
         </div>
+        @if(!empty($filters['category']) && $filters['category'] !== 'All Categories')
+            <div class="filter-tag">Category: <strong>{{ $filters['category'] }}</strong></div>
+        @endif
+        @if(!empty($filters['audience']) && $filters['audience'] !== 'All')
+            <div class="filter-tag">Audience: <strong>{{ $filters['audience'] }}</strong></div>
+        @endif
+        @if(!empty($filters['age_group']) && $filters['age_group'] !== 'All')
+            <div class="filter-tag">Age Group: <strong>{{ $filters['age_group'] }}</strong></div>
+        @endif
+        @if(!empty($filters['attendance_range']) && $filters['attendance_range'] !== 'All')
+            <div class="filter-tag">Attendance Range: <strong>{{ $filters['attendance_range'] }}</strong></div>
+        @endif
+        @if(!empty($filters['venue_search']))
+            <div class="filter-tag">Venue Search: <strong>"{{ $filters['venue_search'] }}"</strong></div>
+        @endif
         <div class="filter-tag">
             Export Access Level: <strong>Administrative (Full Audit Logs)</strong>
         </div>

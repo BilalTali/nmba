@@ -190,7 +190,7 @@ class EventController extends Controller
 
     public function index(\Illuminate\Http\Request $request): \Inertia\Response
     {
-        $query = Event::orderBy('event_date', 'desc');
+        $query = Event::orderBy('event_date', 'desc')->orderBy('id', 'desc');
 
         if ($request->user() && $request->user()->role !== 'admin') {
             $query->where('submitted_by_user_id', $request->user()->id);
@@ -900,19 +900,43 @@ class EventController extends Controller
      */
     public function exportPdf(\Illuminate\Http\Request $request)
     {
-        $query = Event::orderBy('event_date', 'desc');
+        $query = Event::orderBy('event_date', 'desc')->orderBy('id', 'desc');
         if (auth()->user() && auth()->user()->role !== 'admin') {
             $query->where('submitted_by_user_id', auth()->id());
         }
 
-        if ($request->filled('block_id')) {
-            $query->where('block_id', $request->block_id);
+        if ($request->filled('block_id') && $request->block_id !== 'All Blocks') {
+            if (is_numeric($request->block_id)) {
+                $query->where('block_id', $request->block_id);
+            } else {
+                $block = \App\Models\Block::where('name', $request->block_id)->first();
+                if ($block) {
+                    $query->where('block_id', $block->id);
+                } else {
+                    $query->where('block_id', 0);
+                }
+            }
         }
         if ($request->filled('start_date')) {
             $query->whereDate('event_date', '>=', $request->start_date);
         }
         if ($request->filled('end_date')) {
             $query->whereDate('event_date', '<=', $request->end_date);
+        }
+        if ($request->filled('category') && $request->category !== 'All Categories') {
+            $query->whereJsonContains('event_category', $request->category);
+        }
+        if ($request->filled('audience') && $request->audience !== 'All') {
+            $query->whereJsonContains('target_audience', $request->audience);
+        }
+        if ($request->filled('age_group') && $request->age_group !== 'All') {
+            $query->whereJsonContains('age_group', $request->age_group);
+        }
+        if ($request->filled('attendance_range') && $request->attendance_range !== 'All') {
+            $query->where('attendance_range', $request->attendance_range);
+        }
+        if ($request->filled('venue_search')) {
+            $query->where('event_venue', 'like', '%' . $request->venue_search . '%');
         }
 
         $events = $query->get();
@@ -921,7 +945,7 @@ class EventController extends Controller
         return view('events.pdf', [
             'events' => $events,
             'blocks' => $blocks,
-            'filters' => $request->only(['block_id', 'start_date', 'end_date']),
+            'filters' => $request->only(['block_id', 'start_date', 'end_date', 'category', 'audience', 'age_group', 'attendance_range', 'venue_search']),
         ]);
     }
 
@@ -930,7 +954,7 @@ class EventController extends Controller
      */
     public function exportCsv()
     {
-        $query = Event::orderBy('event_date', 'desc');
+        $query = Event::orderBy('event_date', 'desc')->orderBy('id', 'desc');
         if (auth()->user() && auth()->user()->role !== 'admin') {
             $query->where('submitted_by_user_id', auth()->id());
         }

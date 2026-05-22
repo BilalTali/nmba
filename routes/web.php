@@ -139,7 +139,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ])->sortByDesc('participants')->values();
 
         // 4. Paginated Table Records
-        $events = $query->orderBy('event_date', 'desc')->paginate(10)->withQueryString();
+        $events = $query->orderBy('event_date', 'desc')->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         return view('events.portal', [
             'totalEvents' => $totalEvents,
@@ -190,7 +190,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
             $query->where('event_venue', 'like', '%' . $request->venue_search . '%');
         }
 
-        $events = $query->orderBy('event_date', 'desc')->get();
+        $events = $query->orderBy('event_date', 'desc')->orderBy('id', 'desc')->get();
         $blocks = \App\Models\Block::pluck('name', 'id')->toArray();
 
         $headers = [
