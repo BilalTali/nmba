@@ -260,10 +260,20 @@
                 display: table-header-group;
             }
 
-            /* Set landscape print orientation */
+            /* Set landscape print orientation and custom margin page numbering */
             @page {
                 size: A4 landscape;
-                margin: 1.5cm;
+                margin: 15mm 15mm 15mm 15mm;
+                @top-left { content: none !important; }
+                @top-right { content: none !important; }
+                @bottom-left { content: none !important; }
+                @bottom-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-family: 'Outfit', 'Inter', sans-serif;
+                    font-size: 8px;
+                    color: #475569;
+                    font-weight: 600;
+                }
             }
         }
 
