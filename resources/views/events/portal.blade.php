@@ -735,19 +735,10 @@
         </div>
         
         <div class="header-actions">
-            @if (Route::has('login'))
-                @auth
-                    <a href="{{ route('events.index') }}" class="nav-btn nav-btn-accent">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        Operator Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="nav-btn">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        Operator Login
-                    </a>
-                @endauth
-            @endif
+            <a href="{{ route('dashboard') }}" class="nav-btn nav-btn-accent">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Admin Dashboard
+            </a>
         </div>
     </header>
 
@@ -767,7 +758,7 @@
                 Filter Portal Data
             </h3>
             
-            <form method="GET" action="{{ url('/') }}" id="filterForm">
+            <form method="GET" action="{{ route('admin.events.portal') }}" id="filterForm">
                 <div class="filter-grid">
                     
                     <!-- Date Pickers -->
@@ -846,7 +837,7 @@
 
                 <!-- Action Toolbar -->
                 <div class="filter-actions">
-                    <a href="{{ url('/') }}" class="btn btn-secondary">
+                    <a href="{{ route('admin.events.portal') }}" class="btn btn-secondary">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         Clear Filters
                     </a>
@@ -1079,7 +1070,7 @@
                 }
             }
             
-            window.location.href = "{{ route('public.events.export') }}?" + params.toString();
+            window.location.href = "{{ route('admin.events.portal.export') }}?" + params.toString();
         }
 
         // 2. Chart initialization

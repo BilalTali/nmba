@@ -18,6 +18,19 @@ export default function AuthenticatedLayout({ header, children }) {
         }
     }, [flash]);
 
+    const isEventsPortalActive = typeof window !== 'undefined' && window.location.pathname === '/admin/events-portal';
+    
+    const navLinkClass = "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-semibold leading-5 transition duration-150 ease-in-out focus:outline-none " + 
+        (isEventsPortalActive 
+            ? "border-indigo-400 text-gray-900 focus:border-indigo-700" 
+            : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700");
+
+    const responsiveNavLinkClass = `flex w-full items-start border-l-4 py-2 pe-4 ps-3 ${
+        isEventsPortalActive
+            ? 'border-indigo-400 bg-indigo-50 text-indigo-700 focus:border-indigo-700 focus:bg-indigo-100 focus:text-indigo-800'
+            : 'border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800'
+    } text-base font-medium transition duration-150 ease-in-out focus:outline-none`;
+
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Top Navigation Bar */}
@@ -40,6 +53,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {user.role === 'admin' && (
                                     <>
                                         <NavLink href={route('dashboard')} active={route().current('dashboard')} className="text-sm font-semibold">Dashboard</NavLink>
+                                        <a href="/admin/events-portal" className={navLinkClass}>Events Portal</a>
                                         <NavLink href={route('admin.synced-events')} active={route().current('admin.synced-events')} className="text-sm font-semibold">Synced Events</NavLink>
                                         <NavLink href={route('events.index')} active={route().current('events.index')} className="text-sm font-semibold">View Events</NavLink>
                                         <NavLink href={route('events.create')} active={route().current('events.create')} className="text-sm font-semibold">Create Event</NavLink>
@@ -128,6 +142,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         {user.role === 'admin' && (
                             <>
                                 <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>Dashboard</ResponsiveNavLink>
+                                <a href="/admin/events-portal" className={responsiveNavLinkClass}>Events Portal</a>
                                 <ResponsiveNavLink href={route('admin.synced-events')} active={route().current('admin.synced-events')}>Synced Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.index')} active={route().current('events.index')}>View Events</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('events.create')} active={route().current('events.create')}>Create Event</ResponsiveNavLink>
