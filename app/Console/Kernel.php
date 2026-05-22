@@ -81,8 +81,9 @@ class Kernel extends ConsoleKernel
 
                 // Atomic CAS update per record before dispatching — prevents scheduler-level
                 // duplicate dispatching across distributed worker nodes.
-                $updated = Event::where(function ($query) {
-                    $query->where('sync_status', 'pending')
+                $updated = Event::where(function ($query) use ($event) {
+                    $query->where('id', $event->id)
+                          ->where('sync_status', 'pending')
                           ->where(function ($q) {
                               $q->whereNull('last_attempt_at')
                                 ->orWhere('last_attempt_at', '<', now()->subMinutes(5));

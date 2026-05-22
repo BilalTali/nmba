@@ -204,90 +204,29 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                         </h2>
                         <p className="text-sm font-medium text-slate-500 mt-1">Manage and synchronize your Nasha Mukt Abhiyaan events.</p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                        <a href={route('events.create')} className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all text-sm flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <a
+                            href={route('events.create')}
+                            className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 transition-all text-sm flex items-center gap-2"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
                             Create Event
                         </a>
                         {isDistrictAdmin && (
-                            <>
-                                <button
-                                    onClick={toggleAutoSync}
-                                    className={`px-5 py-2.5 rounded-xl text-white font-bold shadow-lg transition-all text-sm flex items-center gap-2 ${healthState.auto_sync_paused ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20' : 'bg-teal-600 hover:bg-teal-500 shadow-teal-500/20'}`}
-                                >
-                                    {healthState.auto_sync_paused ? 'Resume Auto-Sync' : 'Pause Auto-Sync'}
-                                </button>
-                                <button
-                                    onClick={forceSyncQueue}
-                                    disabled={processing}
-                                    className="px-5 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 shadow-lg shadow-slate-800/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Force Sync
-                                </button>
-                                <button
-                                    onClick={runQueueWorker}
-                                    disabled={processing}
-                                    className="px-5 py-2.5 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 shadow-lg shadow-sky-600/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Work Queue
-                                </button>
-                                <button
-                                    onClick={clearQueue}
-                                    disabled={processing}
-                                    className="px-5 py-2.5 bg-rose-700 text-white font-bold rounded-xl hover:bg-rose-600 shadow-lg shadow-rose-700/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Clear Queue
-                                </button>
-                                <button
-                                    onClick={resetFailedSyncs}
-                                    disabled={processing}
-                                    className="px-5 py-2.5 bg-amber-600 text-white font-bold rounded-xl hover:bg-amber-500 shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Reset Failed Syncs
-                                </button>
-                                <a
-                                    href={route('events.export')}
-                                    className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 text-sm"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Export CSV
-                                </a>
-                                <button
-                                    onClick={() => post(route('events.purge-media'))}
-                                    disabled={processing}
-                                    className="px-5 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-500 shadow-lg shadow-rose-500/20 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Purge Synced Media
-                                </button>
-                                <button
-                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                    className="px-5 py-2.5 bg-white text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-50 shadow-sm transition-all flex items-center gap-2 text-sm"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    Settings
-                                </button>
-                            </>
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className={`px-4 py-2 font-bold rounded-xl transition-all text-sm flex items-center gap-2 shadow-sm border ${
+                                    isSidebarOpen
+                                        ? 'bg-slate-800 text-white border-slate-800'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
+                                title="Open admin actions &amp; settings"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Actions
+                            </button>
                         )}
                     </div>
                 </div>
@@ -296,7 +235,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
             <Head title="Dashboard | Nasha Mukt J&K" />
 
             <div className="flex relative bg-slate-50 min-h-screen">
-                <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'mr-80' : ''}`}>
+                <div className={`py-8 flex-1 transition-all duration-300 ${isSidebarOpen ? 'sm:mr-80' : ''}`}>
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
 
                         {/* SRE Portal Health & Uptime Dashboard */}
@@ -936,16 +875,110 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
 
                 {/* Settings Sidebar — full-width on mobile, fixed 320px on desktop */}
                 {isDistrictAdmin && (
-                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-300 ease-in-out z-50 pt-20 overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-2xl font-black text-slate-800">Settings</h3>
+                    <div className={`fixed top-0 right-0 h-full w-full sm:w-80 bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-300 ease-in-out z-50 pt-16 overflow-y-auto ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                        <div className="p-5">
+                            {/* Sidebar header */}
+                            <div className="flex justify-between items-center mb-5">
+                                <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Admin Actions
+                                </h3>
                                 <button onClick={() => setIsSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
 
-                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            {/* ── Quick Actions ── */}
+                            <div className="space-y-2 mb-5">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 mb-3">Quick Actions</p>
+
+                                <button
+                                    onClick={toggleAutoSync}
+                                    className={`w-full py-3 px-4 rounded-xl text-white font-bold transition-all text-sm flex items-center gap-3 shadow-sm ${
+                                        healthState.auto_sync_paused
+                                            ? 'bg-amber-500 hover:bg-amber-400'
+                                            : 'bg-teal-600 hover:bg-teal-500'
+                                    }`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {healthState.auto_sync_paused ? 'Resume Auto-Sync' : 'Pause Auto-Sync'}
+                                </button>
+
+                                <button
+                                    onClick={forceSyncQueue}
+                                    disabled={processing}
+                                    className="w-full py-3 px-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Force Sync
+                                </button>
+
+                                <button
+                                    onClick={runQueueWorker}
+                                    disabled={processing}
+                                    className="w-full py-3 px-4 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Work Queue
+                                </button>
+
+                                <button
+                                    onClick={resetFailedSyncs}
+                                    disabled={processing}
+                                    className="w-full py-3 px-4 bg-amber-600 text-white font-bold rounded-xl hover:bg-amber-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Reset Failed Syncs
+                                </button>
+
+                                <a
+                                    href={route('events.export')}
+                                    className="w-full py-3 px-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-all flex items-center gap-3 text-sm shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Export CSV
+                                </a>
+
+                                <button
+                                    onClick={clearQueue}
+                                    disabled={processing}
+                                    className="w-full py-3 px-4 bg-rose-700 text-white font-bold rounded-xl hover:bg-rose-600 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Clear Queue
+                                </button>
+
+                                <button
+                                    onClick={() => post(route('events.purge-media'))}
+                                    disabled={processing}
+                                    className="w-full py-3 px-4 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-500 transition-all flex items-center gap-3 text-sm disabled:opacity-50 shadow-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Purge Synced Media
+                                </button>
+                            </div>
+
+                            <div className="border-t border-slate-100 pt-5">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 mb-4">Settings</p>
+
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                                 <h4 className="text-xs font-black text-emerald-600 mb-4 uppercase tracking-widest">Portal API Credentials</h4>
                                 <form onSubmit={submitEnv} className="space-y-5">
                                     <div>
@@ -1012,6 +1045,7 @@ export default function Dashboard({ metrics, recentEvents, recentFailures, autoS
                             </div>
                         </div>
                     </div>
+                </div>
                 )}
             </div>
         </AuthenticatedLayout>
